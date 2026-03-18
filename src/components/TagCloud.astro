@@ -1,0 +1,59 @@
+---
+interface TagCount {
+  tag: string;
+  count: number;
+}
+
+interface Props {
+  tags: TagCount[];
+  maxTags?: number;
+}
+
+const { tags, maxTags = 20 } = Astro.props;
+const topTags = tags.slice(0, maxTags);
+
+const maxCount = Math.max(...topTags.map(t => t.count), 1);
+
+const sizeClasses = [
+  'text-xs px-2 py-0.5',
+  'text-sm px-2.5 py-1',
+  'text-base px-3 py-1.5',
+  'text-lg px-4 py-2',
+];
+
+const colorClasses = [
+  'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50',
+  'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900/50',
+  'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50',
+  'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50',
+  'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50',
+  'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-200 dark:hover:bg-cyan-900/50',
+];
+
+function getSizeClass(count: number): string {
+  const ratio = count / maxCount;
+  if (ratio > 0.75) return sizeClasses[3];
+  if (ratio > 0.5) return sizeClasses[2];
+  if (ratio > 0.25) return sizeClasses[1];
+  return sizeClasses[0];
+}
+
+function getColorClass(tag: string): string {
+  const index = Math.abs(tag.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colorClasses.length;
+  return colorClasses[index];
+}
+
+const basePath = '/xuanchen_content';
+---
+
+<div class="flex flex-wrap gap-2">
+  {topTags.map(tag => (
+    <a 
+      href={`${basePath}/tutorials?tag=${tag.tag}`}
+      class={`inline-flex items-center rounded-full font-medium transition-all duration-200 hover:scale-105 ${getSizeClass(tag.count)} ${getColorClass(tag.tag)}`}
+      title={`${tag.count} 篇教程`}
+    >
+      {tag.tag}
+    </a>
+  ))}
+</div>

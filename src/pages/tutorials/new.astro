@@ -1,52 +1,53 @@
 ---
 export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+const basePath = '/xuanchen_content';
 ---
-<!doctype html>
-<html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width" />
-  <title>新建教程 - 泫晨云栖</title>
-</head>
-<body class="min-h-screen bg-slate-50">
+
+<Layout title="新建教程 - 泫晨云栖">
   <div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">新建教程</h1>
-    <form id="tutorialForm" class="space-y-4">
+    <h1 class="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">新建教程</h1>
+    <form id="tutorialForm" class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
       <div>
-        <label class="block text-sm font-medium mb-1">标题 *</label>
-        <input type="text" name="title" required class="w-full px-4 py-2 border rounded-lg" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标题 *</label>
+        <input type="text" name="title" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">描述 *</label>
-        <input type="text" name="description" required class="w-full px-4 py-2 border rounded-lg" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述 *</label>
+        <input type="text" name="description" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">作者 *</label>
-        <input type="text" name="author" required class="w-full px-4 py-2 border rounded-lg" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">作者 *</label>
+        <input type="text" name="author" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">标签 (逗号分隔)</label>
-        <input type="text" name="tags" placeholder="React, Next.js, 教程" class="w-full px-4 py-2 border rounded-lg" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标签 (逗号分隔)</label>
+        <input type="text" name="tags" placeholder="React, Next.js, 教程" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">封面图</label>
-        <input type="file" id="coverInput" accept="image/*" class="mb-2" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">封面图</label>
+        <input type="file" id="coverInput" accept="image/*" class="mb-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
         <input type="hidden" name="coverImage" id="coverImageUrl" />
-        <div id="coverPreview" class="hidden w-48 h-32 bg-slate-200 rounded-lg overflow-hidden">
+        <div id="coverPreview" class="hidden w-48 h-32 bg-slate-200 dark:bg-slate-600 rounded-lg overflow-hidden">
           <img id="coverPreviewImg" class="w-full h-full object-cover" />
         </div>
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">视频链接</label>
-        <input type="url" name="videoUrl" class="w-full px-4 py-2 border rounded-lg" />
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">视频链接</label>
+        <input type="url" name="videoUrl" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">内容 *</label>
-        <textarea name="content" required rows="15" class="w-full px-4 py-2 border rounded-lg font-mono"></textarea>
+        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">内容 *</label>
+        <textarea name="content" required rows="15" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono"></textarea>
       </div>
-      <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-        保存
-      </button>
+      <div class="flex gap-4">
+        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+          保存
+        </button>
+        <a href={`${basePath}/admin`} class="px-6 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          取消
+        </a>
+      </div>
     </form>
   </div>
   
@@ -65,17 +66,25 @@ export const prerender = false;
       const formData = new FormData();
       formData.append('file', file);
       
-      const res = await fetch('/xuanchen_content/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const data = await res.json();
-      if (data.url) {
-        uploadedCoverUrl = data.url;
-        coverImageUrl.value = data.url;
-        coverPreviewImg.src = data.url;
-        coverPreview?.classList.remove('hidden');
+      try {
+        const res = await fetch('/xuanchen_content/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const data = await res.json();
+        
+        if (data.url) {
+          uploadedCoverUrl = data.url;
+          coverImageUrl.value = data.url;
+          coverPreviewImg.src = data.url;
+          coverPreview?.classList.remove('hidden');
+        } else if (data.error) {
+          alert('上传失败: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Upload failed:', error);
+        alert('上传失败，请重试');
       }
     });
     
@@ -101,5 +110,4 @@ export const prerender = false;
       }
     });
   </script>
-</body>
-</html>
+</Layout>

@@ -30,6 +30,12 @@ db.exec(`
   );
 `);
 
+// Create default admin user if not exists
+const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+if (!adminExists) {
+  db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run('admin', 'admin123');
+}
+
 export function createUser(username: string, password: string, email?: string) {
   const stmt = db.prepare('INSERT INTO users (username, password, email) VALUES (?, ?, ?)');
   return stmt.run(username, password, email || null);

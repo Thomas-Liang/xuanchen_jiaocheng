@@ -1,11 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getPublishedTutorials } from '../lib/tutorial';
+import { getPublishedTutorials, getTagCounts } from '../lib/tutorial';
 import TutorialCard from '../components/TutorialCard.astro';
+import TagCloud from '../components/TagCloud.astro';
 
 const tutorials = getPublishedTutorials();
 const latestTutorials = tutorials.slice(0, 6);
-const tags = [...new Set(tutorials.flatMap(t => t.tags))].sort();
+const tagCounts = getTagCounts();
 const basePath = '/xuanchen_content';
 ---
 
@@ -46,17 +47,11 @@ const basePath = '/xuanchen_content';
     </div>
   </section>
 
-  {tags.length > 0 && (
+    {tagCounts.length > 0 && (
     <section class="py-12 bg-white dark:bg-slate-800/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">热门标签</h2>
-        <div class="flex flex-wrap gap-2">
-          {tags.map(tag => (
-            <a href={`${basePath}/tutorials?tag=${tag}`} class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              {tag}
-            </a>
-          ))}
-        </div>
+        <TagCloud tags={tagCounts} maxTags={15} />
       </div>
     </section>
   )}

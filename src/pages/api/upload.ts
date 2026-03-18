@@ -1,12 +1,25 @@
 import type { APIRoute } from 'astro';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export const OPTIONS: APIRoute = async () => {
+  return new Response(null, { headers: corsHeaders });
+};
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'No file provided' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -15,7 +28,10 @@ export const POST: APIRoute = async ({ request }) => {
     
     const token = import.meta.env.GITHUB_TOKEN || '';
     if (!token) {
-      return new Response(JSON.stringify({ error: 'GitHub Token 未配置，请设置 GITHUB_TOKEN 环境变量' }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'GitHub Token 未配置，请设置 GITHUB_TOKEN 环境变量' }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
     }
     const repo = 'Thomas-Liang/xuanchen_image_bed';
     
@@ -45,19 +61,28 @@ export const POST: APIRoute = async ({ request }) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('GitHub API error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: 'Upload failed: ' + response.status }), { status: 500 });
+      return new Response(JSON.stringify({ error: 'Upload failed: ' + response.status }), { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
     }
 
     const result = await response.json();
-    const imageUrl = `https://raw.githubusercontent.com/${repo}/${year}/${month}/${day}/${filename}`;
+    const imageUrl = `https://raw.githubusercontent.com/${repo}/main/${year}/${month}/${day}/${filename}`;
     
     return new Response(JSON.stringify({ 
       success: true, 
       url: imageUrl,
       path: path_
-    }), { status: 200 });
+    }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: 'Upload failed' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Upload failed' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   }
 };

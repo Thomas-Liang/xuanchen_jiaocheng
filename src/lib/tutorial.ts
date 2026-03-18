@@ -59,6 +59,46 @@ export function getTutorialBySlug(slug: string): Tutorial | null {
   return all.find(t => t.slug === slug) || null;
 }
 
+export interface TagCount {
+  tag: string;
+  count: number;
+}
+
+let tagCountsCache: { data: TagCount[]; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+export function getTagCounts(maxTags: number = 20): TagCount[] {
+  const now = Date.now();
+  
+  if (tagCountsCache && (now - tagCountsCache.timestamp) < CACHE_TTL) {
+    return tagCountsCache.data.slice(0, maxTags);
+  }
+  
+  const tutorials = getPublishedTutorials();
+  const tagMap = new Map<string, number>();
+  
+  tutorials.forEach(tutorial => {
+    tutorial.tags.forEach(tag => {
+      tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+    });
+  });
+  
+  const sortedTags = Array.from(tagMap.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+  
+  tagCountsCache = {
+    data: sortedTags,
+    timestamp: now
+  };
+  
+  return sortedTags.slice(0, maxTags);
+}
+
+export function invalidateTagCountsCache(): void {
+  tagCountsCache = null;
+}
+
 export function serializeTutorial(tutorial: Tutorial): string {
   const frontmatter: Record<string, unknown> = {
     title: tutorial.title,

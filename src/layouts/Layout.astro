@@ -10,6 +10,21 @@ const basePath = '/xuanchen_content';
 <!doctype html>
 <html lang="zh" class="scroll-smooth">
   <head>
+    <script is:inline>
+      // Show admin link immediately on page load if user is logged in
+      (function() {
+        try {
+          var user = sessionStorage.getItem('user');
+          if (user) {
+            JSON.parse(user);
+            var links = document.querySelectorAll('.admin-nav-link');
+            links.forEach(function(link) {
+              link.style.display = '';
+            });
+          }
+        } catch(e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -37,9 +52,12 @@ const basePath = '/xuanchen_content';
               <a href={basePath + '/workflows'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
                 工作流
               </a>
+              <a id="adminNavLink" href={`${basePath}/admin`} class="admin-nav-link hidden px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                管理后台
+              </a>
             </div>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
             <button id="themeToggle" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="切换主题">
               <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -48,7 +66,12 @@ const basePath = '/xuanchen_content';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             </button>
-            <div id="authButtons">
+            <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div id="authButtons" class="hidden md:flex items-center gap-3">
               <a href={`${basePath}/login`} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 font-medium transition-colors">
                 登录
               </a>
@@ -60,6 +83,39 @@ const basePath = '/xuanchen_content';
         </div>
       </nav>
     </header>
+
+    <div id="mobileMenu" class="hidden md:hidden fixed inset-0 z-40">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="mobileMenuOverlay"></div>
+      <div class="absolute right-0 top-0 h-full w-64 bg-white dark:bg-slate-900 shadow-xl transform transition-transform duration-300" id="mobileMenuPanel">
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <span class="font-bold text-slate-800 dark:text-slate-200">菜单</span>
+          <button id="mobileMenuClose" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <nav class="p-4 space-y-2">
+          <a href={basePath + '/'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            首页
+          </a>
+          <a href={basePath + '/tutorials'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            教程
+          </a>
+          <a href={basePath + '/projects'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            开源项目
+          </a>
+          <a href={basePath + '/workflows'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            工作流
+          </a>
+          <a id="mobileAdminLink" href={`${basePath}/admin`} class="admin-nav-link hidden block px-4 py-3 text-blue-600 dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            管理后台
+          </a>
+        </nav>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700" id="mobileAuthButtons">
+        </div>
+      </div>
+    </div>
     
     <main class="flex-1">
       <slot />
@@ -73,6 +129,29 @@ const basePath = '/xuanchen_content';
     
     <script>
       const basePath = '/xuanchen_content';
+      
+      // Mobile menu
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+      const mobileMenuClose = document.getElementById('mobileMenuClose');
+      const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+      
+      function openMobileMenu() {
+        mobileMenu?.classList.remove('hidden');
+        mobileMenuPanel?.classList.remove('translate-x-full');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function closeMobileMenu() {
+        mobileMenu?.classList.add('hidden');
+        mobileMenuPanel?.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+      }
+      
+      mobileMenuBtn?.addEventListener('click', openMobileMenu);
+      mobileMenuOverlay?.addEventListener('click', closeMobileMenu);
+      mobileMenuClose?.addEventListener('click', closeMobileMenu);
       
       // Dark mode toggle
       const themeToggle = document.getElementById('themeToggle');
@@ -89,27 +168,69 @@ const basePath = '/xuanchen_content';
         localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
       });
       
-      // Auth buttons
+      // Auth buttons - Desktop
       const authButtons = document.getElementById('authButtons');
+      const mobileAuthButtons = document.getElementById('mobileAuthButtons');
+      const adminNavLink = document.getElementById('adminNavLink');
+      const mobileAdminLink = document.getElementById('mobileAdminLink');
       const userStr = sessionStorage.getItem('user');
       
-      if (userStr && authButtons) {
+      if (userStr) {
         try {
           const user = JSON.parse(userStr);
-          authButtons.innerHTML = `
-            <span class="px-3 py-1 text-sm text-slate-600 dark:text-slate-300">${user.username}</span>
-            <button id="logoutBtn" class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-red-500 font-medium transition-colors">
-              退出
-            </button>
-          `;
           
-          document.getElementById('logoutBtn')?.addEventListener('click', () => {
+          // Show admin link for logged in users
+          if (adminNavLink) {
+            adminNavLink.classList.remove('hidden');
+          }
+          if (mobileAdminLink) {
+            mobileAdminLink.classList.remove('hidden');
+          }
+          
+          if (authButtons) {
+            authButtons.innerHTML = `
+              <span class="px-3 py-1 text-sm text-slate-600 dark:text-slate-300">${user.username}</span>
+              <button id="logoutBtn" class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-red-500 font-medium transition-colors">
+                退出
+              </button>
+            `;
+          }
+          
+          if (mobileAuthButtons) {
+            mobileAuthButtons.innerHTML = `
+              <div class="space-y-2">
+                <div class="px-4 py-2 text-slate-600 dark:text-slate-300">${user.username}</div>
+                <a href="${basePath}/admin" class="block w-full px-4 py-2 text-center text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
+                  管理后台
+                </a>
+                <button id="mobileLogoutBtn" class="w-full px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-left">
+                  退出登录
+                </button>
+              </div>
+            `;
+          }
+          
+          const handleLogout = () => {
             sessionStorage.removeItem('user');
             window.location.href = basePath + '/login';
-          });
+          };
+          
+          document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
+          document.getElementById('mobileLogoutBtn')?.addEventListener('click', handleLogout);
         } catch (e) {
           console.error('Parse user error:', e);
         }
+      } else if (mobileAuthButtons) {
+        mobileAuthButtons.innerHTML = `
+          <div class="space-y-2">
+            <a href="${basePath}/login" class="block w-full px-4 py-2 text-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+              登录
+            </a>
+            <a href="${basePath}/register" class="block w-full px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg">
+              注册
+            </a>
+          </div>
+          `;
       }
     </script>
   </body>

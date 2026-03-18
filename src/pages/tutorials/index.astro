@@ -1,10 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getPublishedTutorials } from '../../lib/tutorial';
+import { getPublishedTutorials, getTagCounts } from '../../lib/tutorial';
 import TutorialCard from '../../components/TutorialCard.astro';
+import TagCloud from '../../components/TagCloud.astro';
 
 const tutorials = getPublishedTutorials();
 const tags = [...new Set(tutorials.flatMap(t => t.tags))].sort();
+const tagCounts = getTagCounts(15);
 const currentTag = Astro.url.searchParams.get('tag');
 const filteredTutorials = currentTag 
   ? tutorials.filter(t => t.tags.includes(currentTag))
@@ -21,9 +23,16 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
 <Layout title="教程列表 - 泫晨云栖">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">教程列表</h1>
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">教程列表</h1>
+        <button id="mobileFilterBtn" class="md:hidden p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+        </button>
+      </div>
       
-      <div class="flex flex-col md:flex-row gap-4">
+      <div class="hidden md:flex flex-col sm:flex-row gap-4">
         <input 
           type="text" 
           id="searchInput"
@@ -40,6 +49,54 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
             <option value={tag} selected={currentTag === tag}>{tag}</option>
           ))}
         </select>
+      </div>
+      
+      {tagCounts.length > 0 && (
+        <div class="mt-4">
+          <div class="text-sm text-slate-500 mb-2">热门标签</div>
+          <TagCloud tags={tagCounts} maxTags={10} />
+        </div>
+      )}
+    </div>
+
+    <div id="mobileFilterPanel" class="hidden fixed inset-0 z-50 md:hidden">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="mobileFilterOverlay"></div>
+      <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up">
+        <div class="sticky top-0 flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <span class="font-bold text-slate-800 dark:text-slate-200">筛选</span>
+          <button id="mobileFilterClose" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">搜索</label>
+            <input 
+              type="text" 
+              id="mobileSearchInput"
+              placeholder="搜索教程..." 
+              class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">分类</label>
+            <div class="flex flex-wrap gap-2">
+              <button class="mobile-tag-btn px-3 py-1.5 rounded-full text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300" data-tag="">
+                全部
+              </button>
+              {tags.map(tag => (
+                <button class="mobile-tag-btn px-3 py-1.5 rounded-full text-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300" data-tag={tag}>
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div class="pt-4 flex gap-3">
+            <button id="mobileFilterApply" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">应用筛选</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -121,6 +178,68 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
         window.location.href = '/xuanchen_content/tutorials';
       }
     });
+
+    // Mobile filter
+    const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+    const mobileFilterPanel = document.getElementById('mobileFilterPanel');
+    const mobileFilterOverlay = document.getElementById('mobileFilterOverlay');
+    const mobileFilterClose = document.getElementById('mobileFilterClose');
+    const mobileFilterApply = document.getElementById('mobileFilterApply');
+    const mobileSearchInput = document.getElementById('mobileSearchInput') as HTMLInputElement;
+    const mobileTagBtns = document.querySelectorAll('.mobile-tag-btn');
+    let selectedMobileTag = '';
+
+    function openMobileFilter() {
+      mobileFilterPanel?.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileFilter() {
+      mobileFilterPanel?.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    mobileFilterBtn?.addEventListener('click', openMobileFilter);
+    mobileFilterOverlay?.addEventListener('click', closeMobileFilter);
+    mobileFilterClose?.addEventListener('click', closeMobileFilter);
+
+    mobileTagBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedMobileTag = btn.getAttribute('data-tag') || '';
+        mobileTagBtns.forEach(b => {
+          b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600');
+          b.classList.add('border-slate-200', 'dark:border-slate-700');
+        });
+        if (selectedMobileTag) {
+          btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+          btn.classList.remove('border-slate-200', 'dark:border-slate-700');
+        }
+      });
+    });
+
+    // Apply current tag selection on open
+    const currentTag = new URLSearchParams(window.location.search).get('tag') || '';
+    if (currentTag) {
+      selectedMobileTag = currentTag;
+      mobileTagBtns.forEach(btn => {
+        if (btn.getAttribute('data-tag') === currentTag) {
+          btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+          btn.classList.remove('border-slate-200', 'dark:border-slate-700');
+        }
+      });
+    }
+
+    mobileFilterApply?.addEventListener('click', () => {
+      const params = new URLSearchParams();
+      if (mobileSearchInput?.value) {
+        // Keep client-side search
+      }
+      if (selectedMobileTag) {
+        params.set('tag', selectedMobileTag);
+      }
+      const queryString = params.toString();
+      window.location.href = queryString ? `/xuanchen_content/tutorials?${queryString}` : '/xuanchen_content/tutorials';
+    });
   </script>
   
   <style>
@@ -130,6 +249,13 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
     }
     .animate-fade-in {
       animation: fadeIn 0.3s ease-out forwards;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.3s ease-out;
     }
   </style>
 </Layout>

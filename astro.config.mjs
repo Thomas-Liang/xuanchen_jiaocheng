@@ -4,6 +4,7 @@ import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
 
 export default defineConfig({
+  output: 'server',
   adapter: node({
     mode: 'standalone',
   }),
@@ -14,5 +15,8 @@ export default defineConfig({
   base: '/xuanchen_content',
   build: {
     outDir: 'dist',
+  },
+  server: {
+    host: true,
   },
 });

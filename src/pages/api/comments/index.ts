@@ -1,6 +1,16 @@
 import type { APIRoute } from 'astro';
 import { addComment, getComments } from '../../../lib/auth';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export const OPTIONS: APIRoute = async () => {
+  return new Response(null, { headers: corsHeaders });
+};
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
@@ -9,14 +19,23 @@ export const POST: APIRoute = async ({ request }) => {
     const content = formData.get('content')?.toString();
 
     if (!tutorialSlug || !username || !content) {
-      return new Response(JSON.stringify({ error: '缺少必要参数' }), { status: 400 });
+      return new Response(JSON.stringify({ error: '缺少必要参数' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
     }
 
     addComment(tutorialSlug, username, content);
-    return new Response(JSON.stringify({ success: true }), { status: 201 });
+    return new Response(JSON.stringify({ success: true }), { 
+      status: 201,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: '评论失败' }), { status: 500 });
+    return new Response(JSON.stringify({ error: '评论失败' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   }
 };
 
@@ -24,13 +43,22 @@ export const GET: APIRoute = async ({ url }) => {
   try {
     const slug = url.searchParams.get('slug');
     if (!slug) {
-      return new Response(JSON.stringify({ error: '缺少 slug 参数' }), { status: 400 });
+      return new Response(JSON.stringify({ error: '缺少 slug 参数' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
     }
 
     const comments = getComments(slug);
-    return new Response(JSON.stringify({ comments }), { status: 200 });
+    return new Response(JSON.stringify({ comments }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   } catch (error) {
     console.error(error);
-    return new Response(JSON.stringify({ error: '获取评论失败' }), { status: 500 });
+    return new Response(JSON.stringify({ error: '获取评论失败' }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
   }
 };
