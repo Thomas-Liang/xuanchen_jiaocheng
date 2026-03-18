@@ -1,0 +1,190 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+import { getTutorialBySlug, getPublishedTutorials } from '../../lib/tutorial';
+
+const { slug } = Astro.params;
+const tutorial = slug ? getTutorialBySlug(slug) : null;
+const basePath = '/xuanchen_content';
+
+if (!tutorial) {
+  return Astro.redirect(`${basePath}/tutorials`);
+}
+
+// Get related tutorials (same tags)
+const allTutorials = getPublishedTutorials().filter(t => t.slug !== tutorial.slug);
+const relatedTutorials = allTutorials
+  .filter(t => t.tags.some(tag => tutorial.tags.includes(tag)))
+  .slice(0, 3);
+
+const userStr = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('user') : null;
+const currentUser = userStr ? JSON.parse(userStr) : null;
+---
+
+<Layout title={`${tutorial.title} - 泫晨云栖`}>
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    {tutorial.coverImage && (
+      <div class="mb-8 rounded-2xl overflow-hidden">
+        <img src={tutorial.coverImage} alt={tutorial.title} class="w-full h-64 md:h-96 object-cover" />
+      </div>
+    )}
+    
+    <div class="mb-8">
+      <div class="flex items-center gap-2 mb-4">
+        {tutorial.tags.map(tag => (
+          <a href={`${basePath}/tutorials?tag=${tag}`} class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm hover:bg-blue-200 dark:hover:bg-blue-800/30 transition-colors">
+            {tag}
+          </a>
+        ))}
+      </div>
+      
+      <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+        {tutorial.title}
+      </h1>
+      
+      <p class="text-slate-500 mb-4">{tutorial.description}</p>
+      
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4 text-sm text-slate-400">
+          <span>{tutorial.author}</span>
+          <span>•</span>
+          <span>{tutorial.publishDate}</span>
+          <span>•</span>
+          <span>{tutorial.readingTime} 分钟阅读</span>
+        </div>
+        
+        {currentUser && (
+          <button id="favoriteBtn" data-slug={tutorial.slug} class="flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span>收藏</span>
+          </button>
+        )}
+      </div>
+    </div>
+    
+    <div class="prose dark:prose-invert max-w-none">
+      <div set:html={tutorial.content} />
+    </div>
+    
+    <!-- Comments Section -->
+    <div class="mt-16 border-t border-slate-200 dark:border-slate-700 pt-8">
+      <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">评论</h2>
+      
+      <div id="commentsList" class="space-y-4 mb-6">
+        <p class="text-slate-500">加载中...</p>
+      </div>
+      
+      {currentUser ? (
+        <form id="commentForm" class="space-y-4">
+          <input type="hidden" name="slug" value={tutorial.slug} />
+          <input type="hidden" name="username" value={currentUser.username} />
+          <textarea 
+            name="content" 
+            required 
+            placeholder="写下你的评论..." 
+            rows="3"
+            class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ></textarea>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            发表评论
+          </button>
+        </form>
+      ) : (
+        <p class="text-slate-500">
+          <a href={`${basePath}/login`} class="text-blue-600 hover:underline">登录</a> 后发表评论
+        </p>
+      )}
+    </div>
+    
+    <!-- Related Tutorials -->
+    {relatedTutorials.length > 0 && (
+      <div class="mt-16 border-t border-slate-200 dark:border-slate-700 pt-8">
+        <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-6">相关文章</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {relatedTutorials.map(related => (
+            <a href={`${basePath}/tutorials/${related.slug}`} class="block p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors">
+              <h3 class="font-medium text-slate-800 dark:text-slate-200 line-clamp-2">{related.title}</h3>
+              <p class="text-sm text-slate-500 mt-1 line-clamp-1">{related.description}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </article>
+  
+  <script define:vars={{ basePath, slug: tutorial.slug }}>
+    // Load comments
+    async function loadComments() {
+      const res = await fetch(`${basePath}/api/comments?slug=${slug}`);
+      const data = await res.json();
+      const list = document.getElementById('commentsList');
+      
+      if (data.comments && data.comments.length > 0) {
+        list.innerHTML = data.comments.map(c => `
+          <div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-medium text-slate-800 dark:text-slate-200">${c.username}</span>
+              <span class="text-sm text-slate-400">${new Date(c.created_at).toLocaleDateString()}</span>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300">${c.content}</p>
+          </div>
+        `).join('');
+      } else {
+        list.innerHTML = '<p class="text-slate-500">暂无评论</p>';
+      }
+    }
+    
+    loadComments();
+    
+    // Submit comment
+    const commentForm = document.getElementById('commentForm');
+    commentForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch(`${basePath}/api/comments`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (res.ok) {
+        e.target.reset();
+        loadComments();
+      }
+    });
+    
+    // Favorite button
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    favoriteBtn?.addEventListener('click', async () => {
+      const userStr = sessionStorage.getItem('user');
+      if (!userStr) {
+        window.location.href = `${basePath}/login`;
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      const formData = new FormData();
+      formData.append('slug', slug);
+      formData.append('username', user.username);
+      
+      const res = await fetch(`${basePath}/api/favorites`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const icon = favoriteBtn.querySelector('svg');
+        if (data.favorited) {
+          icon.setAttribute('fill', 'currentColor');
+          icon.classList.add('text-red-500');
+        } else {
+          icon.setAttribute('fill', 'none');
+          icon.classList.remove('text-red-500');
+        }
+      }
+    });
+  </script>
+</Layout>

@@ -1,0 +1,50 @@
+---
+export const prerender = false;
+---
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>登录 - 泫晨云栖</title>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-slate-50">
+  <div class="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
+    <h1 class="text-2xl font-bold text-center mb-6">登录</h1>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">用户名</label>
+        <input type="text" name="username" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">密码</label>
+        <input type="password" name="password" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        登录
+      </button>
+    </form>
+    <p class="mt-4 text-center text-slate-500">
+      还没有账号？ <a href="/xuanchen_content/register" class="text-blue-600 hover:underline">注册</a>
+    </p>
+  </div>
+  <script>
+    const form = document.getElementById('loginForm');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form as HTMLFormElement);
+      const res = await fetch('/xuanchen_content/api/auth/login', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = '/xuanchen_content/admin';
+      } else {
+        alert(data.error || '登录失败');
+      }
+    });
+  </script>
+</body>
+</html>

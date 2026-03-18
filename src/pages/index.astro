@@ -1,0 +1,63 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getPublishedTutorials } from '../lib/tutorial';
+import TutorialCard from '../components/TutorialCard.astro';
+
+const tutorials = getPublishedTutorials();
+const latestTutorials = tutorials.slice(0, 6);
+const tags = [...new Set(tutorials.flatMap(t => t.tags))].sort();
+const basePath = '/xuanchen_content';
+---
+
+<Layout title="泫晨云栖 - 教程网站">
+  <section class="relative py-20 bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent mb-4">
+          泫晨云栖
+        </h1>
+        <p class="text-lg text-slate-600 dark:text-slate-300 mb-8">
+          发现最优质的教程资源，开启你的学习之旅
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-200">最新教程</h2>
+        <a href={`${basePath}/tutorials`} class="text-blue-600 hover:text-blue-700 font-medium">
+          查看全部 →
+        </a>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {latestTutorials.map(tutorial => (
+          <TutorialCard tutorial={tutorial} />
+        ))}
+      </div>
+      
+      {latestTutorials.length === 0 && (
+        <div class="text-center py-12">
+          <p class="text-slate-500">暂无教程</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  {tags.length > 0 && (
+    <section class="py-12 bg-white dark:bg-slate-800/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">热门标签</h2>
+        <div class="flex flex-wrap gap-2">
+          {tags.map(tag => (
+            <a href={`${basePath}/tutorials?tag=${tag}`} class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              {tag}
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</Layout>

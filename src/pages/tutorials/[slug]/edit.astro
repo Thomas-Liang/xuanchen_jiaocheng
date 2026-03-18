@@ -1,0 +1,124 @@
+---
+export const prerender = false;
+import { getTutorialBySlug } from '../../../lib/tutorial';
+
+const { slug } = Astro.params;
+const tutorial = slug ? getTutorialBySlug(slug) : null;
+const basePath = '/xuanchen_content';
+
+if (!tutorial) {
+  return Astro.redirect(`${basePath}/tutorials`);
+}
+---
+
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>编辑教程 - 泫晨云栖</title>
+</head>
+<body class="min-h-screen bg-slate-50">
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">编辑教程</h1>
+    <form id="tutorialForm" class="space-y-4">
+      <input type="hidden" name="slug" value={tutorial.slug} />
+      <div>
+        <label class="block text-sm font-medium mb-1">标题 *</label>
+        <input type="text" name="title" required value={tutorial.title} class="w-full px-4 py-2 border rounded-lg" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">描述 *</label>
+        <input type="text" name="description" required value={tutorial.description} class="w-full px-4 py-2 border rounded-lg" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">作者 *</label>
+        <input type="text" name="author" required value={tutorial.author} class="w-full px-4 py-2 border rounded-lg" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">标签 (逗号分隔)</label>
+        <input type="text" name="tags" value={tutorial.tags.join(', ')} class="w-full px-4 py-2 border rounded-lg" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">封面图</label>
+        <input type="file" id="coverInput" accept="image/*" class="mb-2" />
+        <input type="hidden" name="coverImage" id="coverImageUrl" value={tutorial.coverImage || ''} />
+        <div id="coverPreview" class={tutorial.coverImage ? 'w-48 h-32 bg-slate-200 rounded-lg overflow-hidden' : 'hidden w-48 h-32 bg-slate-200 rounded-lg overflow-hidden'}>
+          <img id="coverPreviewImg" src={tutorial.coverImage || ''} class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">视频链接</label>
+        <input type="url" name="videoUrl" value={tutorial.videoUrl || ''} class="w-full px-4 py-2 border rounded-lg" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">内容 *</label>
+        <textarea name="content" required rows="15" class="w-full px-4 py-2 border rounded-lg font-mono">{tutorial.content}</textarea>
+      </div>
+      <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        保存
+      </button>
+    </form>
+  </div>
+  
+  <script>
+    const form = document.getElementById('tutorialForm');
+    const coverInput = document.getElementById('coverInput') as HTMLInputElement;
+    const coverImageUrl = document.getElementById('coverImageUrl') as HTMLInputElement;
+    const coverPreview = document.getElementById('coverPreview');
+    const coverPreviewImg = document.getElementById('coverPreviewImg') as HTMLImageElement;
+    let uploadedCoverUrl = '';
+    
+    coverInput?.addEventListener('change', async () => {
+      const file = coverInput.files?.[0];
+      if (!file) return;
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch('/xuanchen_content/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await res.json();
+      if (data.url) {
+        uploadedCoverUrl = data.url;
+        coverImageUrl.value = data.url;
+        coverPreviewImg.src = data.url;
+        coverPreview?.classList.remove('hidden');
+      }
+    });
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const coverImageInput = document.querySelector('input[name="coverImage"]') as HTMLInputElement;
+      if (coverImageInput && uploadedCoverUrl) {
+        coverImageInput.value = uploadedCoverUrl;
+      }
+      
+      const formData = new FormData(form as HTMLFormElement);
+      
+      try {
+        const response = await fetch('/xuanchen_content/api/tutorials/edit', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('保存成功！');
+          window.location.href = '/xuanchen_content/admin';
+        } else {
+          alert('保存失败: ' + (result.error || '未知错误'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('保存失败');
+      }
+    });
+  </script>
+</body>
+</html>

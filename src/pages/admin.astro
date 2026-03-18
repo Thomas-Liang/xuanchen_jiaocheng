@@ -1,0 +1,89 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { getAllTutorials } from '../lib/tutorial';
+
+let tutorials = getAllTutorials();
+tutorials = tutorials.sort((a, b) => {
+  const dateA = a.lastModified || a.publishDate;
+  const dateB = b.lastModified || b.publishDate;
+  return new Date(dateB).getTime() - new Date(dateA).getTime();
+});
+const basePath = '/xuanchen_content';
+---
+
+<Layout title="管理后台 - 泫晨云栖">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-200">管理后台</h1>
+      <a href={`${basePath}/tutorials/new`} class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        新建教程
+      </a>
+    </div>
+    
+    {tutorials.length > 0 ? (
+      <div class="divide-y divide-slate-200 dark:divide-slate-700">
+        {tutorials.map(tutorial => (
+          <div class="p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+            {tutorial.coverImage && (
+              <div class="flex-shrink-0 w-24 h-16 mr-4 overflow-hidden rounded-lg">
+                <img src={tutorial.coverImage} alt="" class="w-full h-full object-cover" />
+              </div>
+            )}
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
+                {tutorial.title}
+              </h3>
+              <p class="text-sm text-slate-500 truncate">{tutorial.description}</p>
+              <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
+                <span>{tutorial.author}</span>
+                <span>•</span>
+                <span>{tutorial.lastModified || tutorial.publishDate}</span>
+                <span>•</span>
+                <span>{tutorial.readingTime} min</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 ml-4">
+              <a href={`${basePath}/tutorials/${tutorial.slug}/edit`} class="px-3 py-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                编辑
+              </a>
+              <button 
+                class="delete-btn px-3 py-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                data-slug={tutorial.slug}
+              >
+                删除
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-12">
+        <p class="text-slate-500 mb-4">暂无教程</p>
+        <a href={`${basePath}/tutorials/new`} class="text-blue-600 hover:underline">
+          创建第一个教程
+        </a>
+      </div>
+    )}
+  </div>
+  
+  <script>
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('确定要删除这个教程吗？')) return;
+        
+        const slug = (btn as HTMLElement).dataset.slug;
+        const res = await fetch(`${window.location.origin}/xuanchen_content/api/tutorials/delete?slug=${slug}`, {
+          method: 'DELETE'
+        });
+        
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('删除失败');
+        }
+      });
+    });
+  </script>
+</Layout>

@@ -1,0 +1,70 @@
+---
+import type { Tutorial } from '../lib/types';
+
+interface Props {
+  tutorial: Tutorial;
+}
+
+const { tutorial } = Astro.props;
+const basePath = '/xuanchen_content';
+
+const gradients = [
+  'from-blue-500 to-cyan-500',
+  'from-violet-500 to-purple-500',
+  'from-orange-500 to-red-500',
+  'from-green-500 to-teal-500',
+  'from-pink-500 to-rose-500',
+];
+
+const gradient = gradients[Math.abs(tutorial.slug.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % gradients.length];
+---
+
+<a href={`${basePath}/tutorials/${tutorial.slug}`} class="group block h-full" data-tutorial-title={tutorial.title} data-tutorial-description={tutorial.description} data-tutorial-tags={tutorial.tags.join(',')}>
+  <div class="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-2 h-full flex flex-col">
+    <div class="relative aspect-video overflow-hidden flex-shrink-0">
+      {tutorial.coverImage ? (
+        <img 
+          src={tutorial.coverImage} 
+          alt={tutorial.title} 
+          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        />
+      ) : null}
+      <div class={`absolute inset-0 w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`} style={tutorial.coverImage ? 'display: none;' : ''}>
+        <svg class="w-16 h-16 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
+    
+    <div class="p-5 flex flex-col flex-grow">
+      <div class="flex items-center gap-2 mb-3">
+        {tutorial.tags.slice(0, 2).map(tag => (
+          <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium">
+            {tag}
+          </span>
+        ))}
+      </div>
+      
+      <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+        {tutorial.title}
+      </h3>
+      
+      <p class="text-sm text-slate-500 mb-4 line-clamp-2">{tutorial.description}</p>
+      
+      <div class="flex items-center justify-between text-xs text-slate-400 mt-auto">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-violet-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            {tutorial.author.charAt(0)}
+          </div>
+          <span>{tutorial.author}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span>{tutorial.readingTime} min</span>
+          <span>{tutorial.lastModified || tutorial.publishDate}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</a>

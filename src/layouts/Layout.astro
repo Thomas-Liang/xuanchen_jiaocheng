@@ -1,0 +1,116 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = '泫晨云栖' } = Astro.props;
+const basePath = '/xuanchen_content';
+---
+
+<!doctype html>
+<html lang="zh" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+    <header class="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-700/50">
+      <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+          <div class="flex items-center gap-8">
+            <a href={basePath + '/'} class="text-xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+              泫晨云栖
+            </a>
+            <div class="hidden md:flex gap-1">
+              <a href={basePath + '/'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                首页
+              </a>
+              <a href={basePath + '/tutorials'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                教程
+              </a>
+              <a href={basePath + '/projects'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                开源项目
+              </a>
+              <a href={basePath + '/workflows'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                工作流
+              </a>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="themeToggle" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="切换主题">
+              <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </button>
+            <div id="authButtons">
+              <a href={`${basePath}/login`} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 font-medium transition-colors">
+                登录
+              </a>
+              <a href={`${basePath}/register`} class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+                注册
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    
+    <main class="flex-1">
+      <slot />
+    </main>
+    
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
+      <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 dark:text-slate-400">
+        <p>© 2026 泫晨云栖. All rights reserved.</p>
+      </div>
+    </footer>
+    
+    <script>
+      const basePath = '/xuanchen_content';
+      
+      // Dark mode toggle
+      const themeToggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+        html.classList.add('dark');
+      }
+      
+      themeToggle?.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+      });
+      
+      // Auth buttons
+      const authButtons = document.getElementById('authButtons');
+      const userStr = sessionStorage.getItem('user');
+      
+      if (userStr && authButtons) {
+        try {
+          const user = JSON.parse(userStr);
+          authButtons.innerHTML = `
+            <span class="px-3 py-1 text-sm text-slate-600 dark:text-slate-300">${user.username}</span>
+            <button id="logoutBtn" class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-red-500 font-medium transition-colors">
+              退出
+            </button>
+          `;
+          
+          document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            sessionStorage.removeItem('user');
+            window.location.href = basePath + '/login';
+          });
+        } catch (e) {
+          console.error('Parse user error:', e);
+        }
+      }
+    </script>
+  </body>
+</html>
