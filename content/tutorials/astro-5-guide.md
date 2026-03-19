@@ -1,14 +1,16 @@
 ---
-title: "Astro 5 完全指南：构建下一代静态网站"
-description: "深入学习 Astro 5 框架，掌握内容优先的网站构建方法"
-author: "泫晨云栖"
-publishDate: "2026-03-10"
-lastModified: "2026-03-17"
-coverImage: "https://picsum.photos/seed/astro5/800/450"
-tags: ["Astro", "前端", "静态网站"]
+title: Astro 5 完全指南：构建下一代静态网站
+description: 深入学习 Astro 5 框架，掌握内容优先的网站构建方法
+author: 泫晨云栖
+publishDate: '2026-03-10'
+lastModified: '2026-03-18'
+tags:
+  - Astro
+  - 前端
+  - 静态网站
 isDraft: false
+coverImage: 'https://picsum.photos/seed/astro5/800/450'
 ---
-
 Astro 5 是一个专注于内容的网站框架，它将改变你构建网站的方式。
 
 ## 什么是 Astro？
