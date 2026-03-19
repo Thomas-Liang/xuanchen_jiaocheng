@@ -47,12 +47,12 @@
 | T2.2.2.2 | 统计每个标签的使用次数 | utils/tutorials.ts | 2h | T2.2.2.1 | ✅ |
 | T2.2.2.3 | 实现按使用次数排序取前20个 | utils/tutorials.ts | 1h | T2.2.2.2 | ✅ |
 | T2.2.2.4 | 缓存标签统计数据（5分钟TTL） | utils/cache.ts | 2h | T2.2.2.3 | ✅ |
-| T2.2.3.1 | 实现标签点击跳转到列表页 | components/TagCloud.tsx | 1h | - | ⬜ |
-| T2.2.3.2 | 列表页接收tag参数并筛选 | pages/tutorials/index.astro | 2h | T2.2.3.1 | ⬜ |
-| T2.2.3.3 | URL参数与现有筛选逻辑兼容 | - | 1h | T2.2.3.2 | ⬜ |
+| T2.2.3.1 | 实现标签点击跳转到列表页 | components/TagCloud.tsx | 1h | - | ✅ |
+| T2.2.3.2 | 列表页接收tag参数并筛选 | pages/tutorials/index.astro | 2h | T2.2.3.1 | ✅ |
+| T2.2.3.3 | URL参数与现有筛选逻辑兼容 | - | 1h | T2.2.3.2 | ✅ |
 | T2.2.4.1 | 在首页Sidebar集成标签云组件 | pages/index.astro | 1h | - | ✅ |
 | T2.2.4.2 | 响应式调整标签云在移动端显示 | components/TagCloud.tsx | 1h | T2.2.4.1 | ✅ |
-| T2.2.4.3 | 测试标签云交互效果 | - | 1h | T2.2.4.2 | ⬜ |
+| T2.2.4.3 | 测试标签云交互效果 | - | 1h | T2.2.4.2 | ✅ |
 
 ---
 
