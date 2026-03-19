@@ -17,13 +17,13 @@
 - 页面展示：首页、列表页、详情页、暗色模式、项目页、工作流页、管理后台
 - 排序：按最后修改时间排序
 
-### Sprint 2: 移动端适配 & 标签云 📋 待开始
+### Sprint 2: 移动端适配 & 标签云 ✅ 已完成
 - 移动端响应式布局
 - 标签云展示
 
-### Sprint 3: 用户头像 & 阅读量 📋 待开始
-- 用户头像功能
-- 阅读量统计
+### Sprint 3: 用户头像 & 阅读量 🔄 进行中
+- 用户头像功能 (US3.1 进行中)
+- 阅读量统计 (US3.2 待开始)
 
 ### Sprint 4: SEO优化 📋 待开始
 - SEO基础优化
@@ -64,10 +64,13 @@
 ### 5. 排序
 - [x] 按最后修改时间排序 - 最新的显示在最前面
 
+### 6. 已实现功能
+- [x] 移动端响应式优化
+- [x] 标签云展示
+- [x] 用户头像 (基础功能)
+
 ### 6. 待实现功能
-- [ ] 移动端响应式优化
-- [ ] 标签云展示
-- [ ] 用户头像
+- [ ] 头像裁剪功能
 - [ ] 教程阅读量统计
 - [ ] SEO 优化
 
@@ -85,16 +88,19 @@
 | /api/upload | POST | 图片上传到 GitHub |
 | /api/comments | POST/GET | 评论发表/获取 |
 | /api/favorites | POST/GET | 收藏操作/获取 |
+| /api/avatar/upload | POST/DELETE | 头像上传/删除 |
+| /api/user/avatar | GET | 获取用户头像 |
 
 ---
 
 ## 访问地址 (开发模式)
-- 首页: http://localhost:9011/xuanchen_content/
-- 登录: http://localhost:9011/xuanchen_content/login
-- 注册: http://localhost:9011/xuanchen_content/register
-- 教程列表: http://localhost:9011/xuanchen_content/tutorials/
-- 管理后台: http://localhost:9011/xuanchen_content/admin/
-- 新建教程: http://localhost:9011/xuanchen_content/tutorials/new/
+- 首页: http://localhost:4321/xuanchen_content/
+- 登录: http://localhost:4321/xuanchen_content/login
+- 注册: http://localhost:4321/xuanchen_content/register
+- 教程列表: http://localhost:4321/xuanchen_content/tutorials/
+- 管理后台: http://localhost:4321/xuanchen_content/admin/
+- 新建教程: http://localhost:4321/xuanchen_content/tutorials/new/
+- 个人资料: http://localhost:4321/xuanchen_content/profile/
 
 ---
 
@@ -124,7 +130,7 @@ isDraft: false
 ```
 
 ### SQLite 表
-- users: id, username, password, email, created_at
+- users: id, username, password, email, avatar, created_at
 - comments: id, tutorial_slug, username, content, created_at
 - favorites: id, tutorial_slug, username, created_at
 
