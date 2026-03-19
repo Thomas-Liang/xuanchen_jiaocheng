@@ -1,0 +1,133 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Avatar from '../components/Avatar.astro';
+import { getUserByUsername } from '../lib/auth';
+
+const username = Astro.cookies.get('username')?.value;
+const isLoggedIn = !!username;
+
+if (!isLoggedIn) {
+  return Astro.redirect('/login');
+}
+
+const user = getUserByUsername(username!);
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人资料 - 泫晨云栖</title>
+</head>
+<body class="bg-gradient-to-br from-pink-50 via-white to-yellow-50 min-h-screen">
+  <Header />
+  
+  <main class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-pink-100">
+      <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">个人资料</h1>
+      
+      <div class="flex flex-col items-center mb-8">
+        <div id="avatar-preview" class="relative group">
+          <Avatar username={username!} avatar={user?.avatar} size="xl" />
+          <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" id="upload-overlay">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-gray-500 text-sm mt-4">点击头像上传新图片</p>
+        <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" />
+      </div>
+
+      <div id="upload-message" class="hidden text-center mb-4 p-3 rounded-lg"></div>
+
+      <div class="space-y-6">
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">用户名</label>
+          <div class="bg-pink-50 rounded-xl px-4 py-3 text-gray-800">{username}</div>
+        </div>
+
+        <div>
+          <label class="block text-gray-700 font-medium mb-2">邮箱</label>
+          <div class="bg-pink-50 rounded-xl px-4 py-3 text-gray-800">{user?.email || '未设置'}</div>
+        </div>
+
+        <div class="pt-4 border-t border-pink-100">
+          <button 
+            id="delete-avatar-btn"
+            class="w-full py-3 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-medium transition-colors"
+          >
+            删除头像
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+
+  <script>
+    const avatarPreview = document.getElementById('avatar-preview');
+    const avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
+    const uploadOverlay = document.getElementById('upload-overlay');
+    const uploadMessage = document.getElementById('upload-message');
+    const deleteAvatarBtn = document.getElementById('delete-avatar-btn');
+
+    avatarPreview?.addEventListener('click', () => avatarInput?.click());
+
+    avatarInput?.addEventListener('change', async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      try {
+        const res = await fetch('/api/avatar/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showMessage('上传成功！', 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showMessage(data.error || '上传失败', 'error');
+        }
+      } catch {
+        showMessage('上传失败，请重试', 'error');
+      }
+    });
+
+    deleteAvatarBtn?.addEventListener('click', async () => {
+      if (!confirm('确定要删除头像吗？')) return;
+
+      try {
+        const res = await fetch('/api/avatar/upload', { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+          showMessage('头像已删除', 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showMessage(data.error || '删除失败', 'error');
+        }
+      } catch {
+        showMessage('删除失败，请重试', 'error');
+      }
+    });
+
+    function showMessage(msg: string, type: 'success' | 'error') {
+      if (!uploadMessage) return;
+      uploadMessage.textContent = msg;
+      uploadMessage.className = `text-center mb-4 p-3 rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+      uploadMessage.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

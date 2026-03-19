@@ -10,6 +10,7 @@ db.exec(`
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     email TEXT,
+    avatar TEXT DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
   
@@ -43,7 +44,7 @@ export function createUser(username: string, password: string, email?: string) {
 
 export function getUserByUsername(username: string) {
   const stmt = db.prepare('SELECT * FROM users WHERE username = ?');
-  return stmt.get(username) as { id: number; username: string; password: string; email?: string } | undefined;
+  return stmt.get(username) as { id: number; username: string; password: string; email?: string; avatar?: string } | undefined;
 }
 
 export function getUserById(id: number) {
@@ -57,7 +58,13 @@ export function addComment(tutorialSlug: string, username: string, content: stri
 }
 
 export function getComments(tutorialSlug: string) {
-  const stmt = db.prepare('SELECT * FROM comments WHERE tutorial_slug = ? ORDER BY created_at DESC');
+  const stmt = db.prepare(`
+    SELECT c.*, u.avatar 
+    FROM comments c 
+    LEFT JOIN users u ON c.username = u.username 
+    WHERE c.tutorial_slug = ? 
+    ORDER BY c.created_at DESC
+  `);
   return stmt.all(tutorialSlug);
 }
 
@@ -79,6 +86,26 @@ export function isFavorited(tutorialSlug: string, username: string) {
 export function getUserFavorites(username: string) {
   const stmt = db.prepare('SELECT tutorial_slug FROM favorites WHERE username = ?');
   return stmt.all(username) as { tutorial_slug: string }[];
+}
+
+export function updateUserAvatar(username: string, avatar: string | null) {
+  const stmt = db.prepare('UPDATE users SET avatar = ? WHERE username = ?');
+  return stmt.run(avatar, username);
+}
+
+export function getUserAvatar(username: string) {
+  const stmt = db.prepare('SELECT avatar FROM users WHERE username = ?');
+  const result = stmt.get(username) as { avatar: string | null } | undefined;
+  return result?.avatar || null;
+}
+
+export function createAvatarUploadDir() {
+  const fs = require('fs');
+  const avatarsDir = path.join(process.cwd(), 'public', 'avatars');
+  if (!fs.existsSync(avatarsDir)) {
+    fs.mkdirSync(avatarsDir, { recursive: true });
+  }
+  return avatarsDir;
 }
 
 export default db;

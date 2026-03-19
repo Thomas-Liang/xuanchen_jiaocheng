@@ -1,0 +1,29 @@
+---
+import { getAvatarUrl } from '../../lib/avatar';
+
+interface Props {
+  username: string;
+  avatar?: string | null;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  class?: string;
+}
+
+const { username, avatar, size = 'md', class: className = '' } = Astro.props;
+const avatarUrl = getAvatarUrl(username, avatar);
+
+const sizeClasses = {
+  sm: 'w-8 h-8 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-16 h-16 text-lg',
+  xl: 'w-24 h-24 text-xl'
+};
+---
+
+<div class={`relative inline-block ${className}`}>
+  <img 
+    src={avatarUrl}
+    alt={`${username}的头像`}
+    class={`${sizeClasses[size]} rounded-full object-cover ring-2 ring-pink-200`}
+    onerror={`this.onerror=null; this.src='/avatars/default.svg'`}
+  />
+</div>

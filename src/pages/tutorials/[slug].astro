@@ -626,13 +626,19 @@ const authorInitial = tutorial.author ? tutorial.author.charAt(0).toUpperCase() 
               const badge = badges[i % badges.length];
               const delay = i * 0.1;
               const isLeft = i % 2 === 0;
+              const avatarUrl = c.avatar || null;
+              const initial = c.username.charAt(0).toUpperCase();
               
               return `
                 <div class="relative mb-8 last:mb-0" style="animation: bubbleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s both;">
                   <div class="absolute left-1/2 -translate-x-1/2 -top-1 z-10">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br ${t.dot} shadow-lg shadow-${t.dot.split('-')[1]}-500/40 ring-4 ring-white dark:ring-slate-900 flex items-center justify-center text-white text-sm font-bold transition-transform hover:scale-110">
-                      ${c.username.charAt(0).toUpperCase()}
-                    </div>
+                    ${avatarUrl ? `
+                      <img src="${avatarUrl}" alt="${c.username}" class="w-10 h-10 rounded-full shadow-lg ring-4 ring-white dark:ring-slate-900 object-cover transition-transform hover:scale-110" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-full bg-gradient-to-br ${t.dot} shadow-lg shadow-${t.dot.split('-')[1]}-500/40 ring-4 ring-white dark:ring-slate-900 flex items-center justify-center text-white text-sm font-bold\\'>${initial}</div>'" />
+                    ` : `
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-br ${t.dot} shadow-lg shadow-${t.dot.split('-')[1]}-500/40 ring-4 ring-white dark:ring-slate-900 flex items-center justify-center text-white text-sm font-bold transition-transform hover:scale-110">
+                        ${initial}
+                      </div>
+                    `}
                   </div>
                   
                   <div class="${isLeft ? 'pr-[52%]' : 'pl-[52%]'}">

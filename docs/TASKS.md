@@ -62,28 +62,28 @@
 
 | Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
 |---------|----------|---------------|----------|------|------|
-| T3.1.1.1 | 设计头像存储路径结构（avatars/{username}） | - | 1h | - | ⬜ |
-| T3.1.1.2 | 扩展users表添加avatar字段 | data/auth.db | 1h | - | ⬜ |
-| T3.1.1.3 | 设计头像文件命名规则（avatar-{timestamp}.jpg） | - | 1h | T3.1.1.1 | ⬜ |
-| T3.1.2.1 | 创建头像上传API接口 | api/upload-avatar.ts | 2h | - | ⬜ |
-| T3.1.2.2 | 实现图片类型验证（jpg/png/gif/webp） | api/upload-avatar.ts | 1h | T3.1.2.1 | ⬜ |
-| T3.1.2.3 | 实现图片大小限制（最大2MB） | api/upload-avatar.ts | 1h | T3.1.2.2 | ⬜ |
-| T3.1.2.4 | 实现上传到GitHub图床avatars目录 | api/upload-avatar.ts | 2h | T3.1.2.3 | ⬜ |
-| T3.1.2.5 | 保存头像URL到用户数据库 | api/upload-avatar.ts | 1h | T3.1.2.4 | ⬜ |
+| T3.1.1.1 | 设计头像存储路径结构（avatars/{username}） | - | 1h | - | ✅ |
+| T3.1.1.2 | 扩展users表添加avatar字段 | data/auth.db | 1h | - | ✅ |
+| T3.1.1.3 | 设计头像文件命名规则（avatar-{timestamp}.jpg） | - | 1h | T3.1.1.1 | ✅ |
+| T3.1.2.1 | 创建头像上传API接口 | api/avatar/upload.ts | 2h | - | ✅ |
+| T3.1.2.2 | 实现图片类型验证（jpg/png/gif/webp） | api/avatar/upload.ts | 1h | T3.1.2.1 | ✅ |
+| T3.1.2.3 | 实现图片大小限制（最大2MB） | api/avatar/upload.ts | 1h | T3.1.2.2 | ✅ |
+| T3.1.2.4 | 实现上传到avatars目录 | api/avatar/upload.ts | 2h | T3.1.2.3 | ✅ |
+| T3.1.2.5 | 保存头像URL到用户数据库 | api/avatar/upload.ts | 1h | T3.1.2.4 | ✅ |
 | T3.1.3.1 | 集成图片裁剪库（react-easy-crop） | package.json | 1h | - | ⬜ |
 | T3.1.3.2 | 创建头像裁剪弹窗组件 | components/AvatarCropper.tsx | 3h | T3.1.3.1 | ⬜ |
 | T3.1.3.3 | 实现裁剪后图片压缩为500x500 | components/AvatarCropper.tsx | 2h | T3.1.3.2 | ⬜ |
 | T3.1.3.4 | 前端预览裁剪效果 | components/AvatarCropper.tsx | 1h | T3.1.3.3 | ⬜ |
-| T3.1.4.1 | 创建用户个人资料页面 | pages/profile.astro | 2h | - | ⬜ |
-| T3.1.4.2 | 集成头像上传和裁剪功能 | pages/profile.astro | 2h | T3.1.4.1 | ⬜ |
-| T3.1.4.3 | 显示当前头像预览 | pages/profile.astro | 1h | T3.1.4.2 | ⬜ |
-| T3.1.4.4 | 实现删除头像功能（恢复默认） | pages/profile.astro | 1h | T3.1.4.3 | ⬜ |
-| T3.1.5.1 | 修改评论列表显示用户头像 | components/CommentList.tsx | 1h | - | ⬜ |
-| T3.1.5.2 | 修改评论输入框显示当前用户头像 | components/CommentForm.tsx | 1h | T3.1.5.1 | ⬜ |
+| T3.1.4.1 | 创建用户个人资料页面 | pages/profile.astro | 2h | - | ✅ |
+| T3.1.4.2 | 集成头像上传和裁剪功能 | pages/profile.astro | 2h | T3.1.4.1 | ✅ |
+| T3.1.4.3 | 显示当前头像预览 | pages/profile.astro | 1h | T3.1.4.2 | ✅ |
+| T3.1.4.4 | 实现删除头像功能（恢复默认） | pages/profile.astro | 1h | T3.1.4.3 | ✅ |
+| T3.1.5.1 | 修改评论列表显示用户头像 | pages/tutorials/[slug].astro | 1h | - | ✅ |
+| T3.1.5.2 | 修改评论输入框显示当前用户头像 | pages/tutorials/[slug].astro | 1h | T3.1.5.1 | ✅ |
 | T3.1.5.3 | 修改教程详情页作者头像显示 | pages/tutorials/[slug].astro | 1h | - | ⬜ |
-| T3.1.6.1 | 设计默认头像SVG/图片资源 | assets/default-avatar.svg | 1h | - | ⬜ |
-| T3.1.6.2 | 实现默认头像fallback逻辑 | utils/avatar.ts | 1h | T3.1.6.1 | ⬜ |
-| T3.1.6.3 | 测试头像不存在时的显示效果 | - | 1h | T3.1.6.2 | ⬜ |
+| T3.1.6.1 | 设计默认头像SVG/图片资源 | assets/default-avatar.svg | 1h | - | ✅ |
+| T3.1.6.2 | 实现默认头像fallback逻辑 | utils/avatar.ts | 1h | T3.1.6.1 | ✅ |
+| T3.1.6.3 | 测试头像不存在时的显示效果 | - | 1h | T3.1.6.2 | ✅ |
 
 ### US3.2: 阅读量统计
 
