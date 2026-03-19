@@ -9,7 +9,9 @@ export default defineConfig({
     mode: 'standalone',
   }),
   integrations: [
-    tailwind(),
+    tailwind({
+      applyBaseStyles: false,
+    }),
     react(),
   ],
   base: '/xuanchen_content',
@@ -18,5 +20,9 @@ export default defineConfig({
   },
   server: {
     host: true,
+    origin: 'http://localhost:4321',
+    csrf: {
+      checkOrigin: false,
+    },
   },
 });

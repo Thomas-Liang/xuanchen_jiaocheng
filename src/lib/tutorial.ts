@@ -1,8 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { marked } from 'marked';
 import type { Tutorial, TutorialFrontmatter } from './types';
 import type { APIRoute } from 'astro';
+
+// Configure marked options
+marked.setOptions({
+  gfm: true,
+  breaks: true,
+});
 
 const tutorialsDir = path.join(process.cwd(), 'content/tutorials');
 
@@ -25,6 +32,9 @@ export function getAllTutorials(): Tutorial[] {
     const wordCount = content.split(/\s+/).length;
     const readingTime = Math.ceil(wordCount / wordsPerMinute);
     
+    // Parse markdown to HTML
+    const htmlContent = marked.parse(content) as string;
+    
     return {
       slug,
       title: frontmatter.title || '',
@@ -38,7 +48,8 @@ export function getAllTutorials(): Tutorial[] {
       projectUrl: frontmatter.projectUrl,
       isDraft: frontmatter.isDraft || false,
       readingTime,
-      content,
+      content: htmlContent,
+      rawContent: content,
     };
   });
 }

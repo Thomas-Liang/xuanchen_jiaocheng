@@ -5,59 +5,214 @@ const basePath = '/xuanchen_content';
 ---
 
 <Layout title="新建教程 - 泫晨云栖">
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">新建教程</h1>
-    <form id="tutorialForm" class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标题 *</label>
-        <input type="text" name="title" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述 *</label>
-        <input type="text" name="description" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">作者 *</label>
-        <input type="text" name="author" required class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标签 (逗号分隔)</label>
-        <input type="text" name="tags" placeholder="React, Next.js, 教程" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">封面图</label>
-        <input type="file" id="coverInput" accept="image/*" class="mb-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-        <input type="hidden" name="coverImage" id="coverImageUrl" />
-        <div id="coverPreview" class="hidden w-48 h-32 bg-slate-200 dark:bg-slate-600 rounded-lg overflow-hidden">
-          <img id="coverPreviewImg" class="w-full h-full object-cover" />
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-8">
+      <a href={`${basePath}/admin`} class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <svg class="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      </a>
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">新建教程</h1>
+    </div>
+    
+    <form id="tutorialForm" action="/xuanchen_content/api/tutorials/create" method="POST" target="hiddenFrame" class="space-y-8">
+      <!-- Basic Info Card -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-6 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          基础信息
+        </h2>
+        
+        <div class="grid gap-6 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">标题 *</label>
+            <input type="text" name="title" required class="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="输入教程标题" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">作者 *</label>
+            <input type="text" name="author" required class="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="输入作者名称" />
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">描述 *</label>
+          <input type="text" name="description" required class="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="简要描述教程内容" />
+        </div>
+        
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">标签 (逗号分隔)</label>
+          <input type="text" name="tags" placeholder="React, TypeScript, 教程" class="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
         </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">视频链接</label>
-        <input type="url" name="videoUrl" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+      
+      <!-- Media Card -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-6 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          封面与链接
+        </h2>
+        
+        <div class="grid gap-6 md:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">封面图</label>
+            <div class="relative">
+              <input type="file" id="coverInput" accept="image/*" class="hidden" />
+              <label for="coverInput" class="flex flex-col items-center justify-center gap-2 w-full px-4 py-10 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+                <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-sm text-slate-500 dark:text-slate-400">点击上传封面图</span>
+                <span class="text-xs text-slate-400">支持 JPG, PNG, GIF</span>
+              </label>
+            </div>
+            <input type="hidden" name="coverImage" id="coverImageUrl" />
+            <div id="coverPreview" class="hidden mt-4">
+              <div class="relative w-full h-48 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                <img id="coverPreviewImg" src="" alt="" class="w-full h-full object-cover" />
+                <button type="button" id="removeCover" class="absolute top-2 right-2 p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">视频链接</label>
+            <input type="url" name="videoUrl" placeholder="https://..." class="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+          </div>
+        </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">内容 *</label>
-        <textarea name="content" required rows="15" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono"></textarea>
+      
+      <!-- Content Card -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+          <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            内容
+          </h2>
+          
+          <!-- Tab Buttons -->
+          <div class="flex bg-slate-200/50 dark:bg-slate-700/50 rounded-lg p-1">
+            <button type="button" id="tabWrite" class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-all bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm">
+              编辑
+            </button>
+            <button type="button" id="tabPreview" class="tab-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+              预览
+            </button>
+          </div>
+        </div>
+        
+        <div id="panelWrite" class="p-4">
+          <textarea name="content" id="contentEditor" required rows="24" class="w-full px-4 py-4 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="在此编写 Markdown 内容...
+
+# 标题一
+## 标题二
+
+**粗体** 和 *斜体*
+
+```javascript
+const hello = 'world';
+```
+
+- 列表项 1
+- 列表项 2
+
+[链接文字](https://example.com)
+
+> 引用文本"></textarea>
+        </div>
+        
+        <div id="panelPreview" class="hidden">
+          <div id="contentPreview" class="prose prose-slate dark:prose-invert max-w-none p-6
+            prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-slate-100
+            prose-h1:text-2xl prose-h2:text-xl prose-h2:border-b prose-h2:border-slate-200 dark:prose-h2:border-slate-700 prose-h2:pb-2 prose-h2:mt-8 prose-h2:mb-4
+            prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
+            prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-7 prose-p:my-5
+            prose-a:text-blue-600 hover:prose-a:underline
+            prose-code:text-rose-600 dark:text-rose-400 prose-code:bg-rose-50 dark:prose-code:bg-rose-900/20 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.875em] prose-code:font-semibold
+            prose-pre:bg-[#1e1e1e] prose-pre:rounded-xl prose-pre:shadow-lg prose-pre:my-6 prose-pre:overflow-hidden
+            prose-pre:border prose-pre:border-slate-700/50
+            prose-img:rounded-xl prose-img:shadow-lg prose-img:my-6
+            prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50/50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-3 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
+            prose-li:my-2
+            prose-ul:my-4 prose-ol:my-4
+            prose-hr:border-slate-200 dark:prose-hr:border-slate-700 prose-hr:my-8
+            prose-strong:font-semibold">
+          </div>
+        </div>
       </div>
-      <div class="flex gap-4">
-        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-          保存
-        </button>
-        <a href={`${basePath}/admin`} class="px-6 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+      
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-end">
+        <a href={`${basePath}/admin`} class="px-6 py-3 text-center border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-medium">
           取消
         </a>
+        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl transition-all flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          创建教程
+        </button>
       </div>
     </form>
   </div>
   
   <script>
-    const form = document.getElementById('tutorialForm');
+    import { marked } from 'marked';
+
+    const form = document.getElementById('tutorialForm') as HTMLFormElement;
+    const contentEditor = document.getElementById('contentEditor') as HTMLTextAreaElement;
+    const contentPreview = document.getElementById('contentPreview');
     const coverInput = document.getElementById('coverInput') as HTMLInputElement;
     const coverImageUrl = document.getElementById('coverImageUrl') as HTMLInputElement;
     const coverPreview = document.getElementById('coverPreview');
     const coverPreviewImg = document.getElementById('coverPreviewImg') as HTMLImageElement;
+    const removeCover = document.getElementById('removeCover');
     let uploadedCoverUrl = '';
+
+    function updatePreview() {
+      if (contentPreview && contentEditor) {
+        contentPreview.innerHTML = marked.parse(contentEditor.value) as string;
+      }
+    }
+
+    contentEditor?.addEventListener('input', updatePreview);
+
+    const tabWrite = document.getElementById('tabWrite');
+    const tabPreview = document.getElementById('tabPreview');
+    const panelWrite = document.getElementById('panelWrite');
+    const panelPreview = document.getElementById('panelPreview');
+
+    function switchTab(tab: 'write' | 'preview') {
+      if (tab === 'write') {
+        tabWrite?.classList.add('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabWrite?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        tabPreview?.classList.remove('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabPreview?.classList.add('text-slate-600', 'dark:text-slate-400');
+        panelWrite?.classList.remove('hidden');
+        panelPreview?.classList.add('hidden');
+      } else {
+        tabPreview?.classList.add('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabPreview?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        tabWrite?.classList.remove('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabWrite?.classList.add('text-slate-600', 'dark:text-slate-400');
+        panelPreview?.classList.remove('hidden');
+        panelWrite?.classList.add('hidden');
+        updatePreview();
+      }
+    }
+
+    tabWrite?.addEventListener('click', () => switchTab('write'));
+    tabPreview?.addEventListener('click', () => switchTab('preview'));
     
     coverInput?.addEventListener('change', async () => {
       const file = coverInput.files?.[0];
@@ -88,25 +243,49 @@ const basePath = '/xuanchen_content';
       }
     });
     
+    removeCover?.addEventListener('click', () => {
+      uploadedCoverUrl = '';
+      coverImageUrl.value = '';
+      coverPreviewImg.src = '';
+      coverPreview?.classList.add('hidden');
+      coverInput.value = '';
+    });
+    
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       if (uploadedCoverUrl) {
-        (form.querySelector('input[name="coverImage"]') as HTMLInputElement).value = uploadedCoverUrl;
+        coverImageUrl.value = uploadedCoverUrl;
       }
       
-      const formData = new FormData(form as HTMLFormElement);
-      const res = await fetch('/xuanchen_content/api/tutorials/create', {
-        method: 'POST',
-        body: formData,
-      });
+      const formData = new FormData(form);
+      const params = new URLSearchParams();
       
-      if (res.ok) {
-        alert('保存成功！');
-        window.location.href = '/xuanchen_content/admin';
-      } else {
-        const data = await res.json();
-        alert('保存失败: ' + (data.error || '未知错误'));
+      for (const [key, value] of formData.entries()) {
+        if (typeof value === 'string') {
+          params.append(key, value);
+        }
+      }
+      
+      try {
+        const res = await fetch('/xuanchen_content/api/tutorials/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params.toString(),
+        });
+        
+        if (res.ok) {
+          alert('保存成功！');
+          window.location.href = '/xuanchen_content/admin';
+        } else {
+          const data = await res.json();
+          alert('保存失败: ' + (data.error || '未知错误'));
+        }
+      } catch (error) {
+        console.error(error);
+        alert('保存失败');
       }
     });
   </script>

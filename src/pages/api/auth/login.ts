@@ -13,11 +13,20 @@ export const OPTIONS: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
+    const text = await request.text();
+    console.log('Raw request body:', text);
+    console.log('Content-Type:', request.headers.get('content-type'));
+    
+    if (!text) {
+      return new Response(JSON.stringify({ error: '请求体为空' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+    
+    const body = JSON.parse(text);
     const username = body.username;
     const password = body.password;
-
-    console.log('Login attempt:', username);
 
     if (!username || !password) {
       return new Response(JSON.stringify({ error: '请填写用户名和密码' }), { 

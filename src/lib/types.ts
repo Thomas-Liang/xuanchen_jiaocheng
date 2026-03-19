@@ -12,6 +12,7 @@ export interface Tutorial {
   isDraft: boolean;
   readingTime: number;
   content?: string;
+  rawContent?: string;
 }
 
 export interface TutorialFrontmatter {

@@ -18,6 +18,18 @@ const totalPages = Math.ceil(filteredTutorials.length / ITEMS_PER_PAGE);
 const currentPage = Math.max(1, parseInt(Astro.url.searchParams.get('page') || '1'));
 const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+const tagParam = currentTag ? 'tag=' + currentTag + '&' : '';
+const pageRange = 1;
+const pageNumbers = [];
+for (let p = 1; p <= totalPages; p++) {
+  const minPage = currentPage - pageRange;
+  const maxPage = currentPage + pageRange;
+  const showPage = p === 1 || p === totalPages || (p >= minPage && p <= maxPage);
+  const showEllipsisBefore = p === minPage && p > 2;
+  const showEllipsisAfter = p === maxPage && p < totalPages - 1;
+  pageNumbers.push({ p, showPage, showEllipsisBefore, showEllipsisAfter });
+}
 ---
 
 <Layout title="教程列表 - 泫晨云栖">
@@ -123,22 +135,40 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
         </div>
         
         {totalPages > 1 && (
-          <div class="mt-12 flex justify-center gap-2">
+          <div class="mt-12 flex flex-wrap items-center justify-center gap-2">
             {currentPage > 1 && (
-              <a href={`${basePath}/tutorials?${currentTag ? 'tag=' + currentTag + '&' : ''}page=${currentPage - 1}`} class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <a href={`${basePath}/tutorials?${tagParam}page=${currentPage - 1}`} class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 上一页
               </a>
             )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <a href={`${basePath}/tutorials?${currentTag ? 'tag=' + currentTag + '&' : ''}page=${page}`} class={`px-4 py-2 rounded-lg transition-colors ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                {page}
-              </a>
-            ))}
+            {pageNumbers.map(({ p, showPage, showEllipsisBefore, showEllipsisAfter }) => {
+              if (showEllipsisBefore) {
+                return <a key={'e-b-' + p} href={`${basePath}/tutorials?${tagParam}page=1`} class="px-3 py-2 text-slate-500">1</a>;
+              }
+              if (showEllipsisAfter) {
+                return <span key={'e-a-' + p} class="px-2 py-2 text-slate-400">...</span>;
+              }
+              if (!showPage) return null;
+              const cls = p === currentPage 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700';
+              return (
+                <a key={p} href={`${basePath}/tutorials?${tagParam}page=${p}`} class={`px-4 py-2 rounded-lg transition-colors ${cls}`}>
+                  {p}
+                </a>
+              );
+            })}
             {currentPage < totalPages && (
-              <a href={`${basePath}/tutorials?${currentTag ? 'tag=' + currentTag + '&' : ''}page=${currentPage + 1}`} class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              <a href={`${basePath}/tutorials?${tagParam}page=${currentPage + 1}`} class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 下一页
               </a>
             )}
+            <form class="ml-4 flex items-center gap-2">
+              <span class="text-sm text-slate-500">跳至</span>
+              <input type="number" min="1" max={totalPages} id="jumpPage" class="w-16 px-2 py-1 border border-slate-200 dark:border-slate-700 rounded text-center bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+              <span class="text-sm text-slate-500">页</span>
+              <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">跳转</button>
+            </form>
           </div>
         )}
       </>
@@ -239,6 +269,19 @@ const paginatedTutorials = filteredTutorials.slice(startIndex, startIndex + ITEM
       }
       const queryString = params.toString();
       window.location.href = queryString ? `/xuanchen_content/tutorials?${queryString}` : '/xuanchen_content/tutorials';
+    });
+
+    // Jump to page
+    const jumpForm = document.querySelector('form:has(#jumpPage)') as HTMLFormElement;
+    jumpForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('jumpPage') as HTMLInputElement;
+      const page = parseInt(input.value);
+      if (page >= 1) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', String(page));
+        window.location.href = `/xuanchen_content/tutorials?${params.toString()}`;
+      }
     });
   </script>
   

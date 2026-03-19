@@ -13,60 +13,284 @@ if (!tutorial) {
 ---
 
 <Layout title="编辑教程 - 泫晨云栖">
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6 text-slate-800 dark:text-slate-200">编辑教程</h1>
-    <form id="tutorialForm" class="space-y-6 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-      <input type="hidden" name="slug" value={tutorial.slug} />
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标题 *</label>
-        <input type="text" name="title" required value={tutorial.title} class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述 *</label>
-        <input type="text" name="description" required value={tutorial.description} class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">作者 *</label>
-        <input type="text" name="author" required value={tutorial.author} class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标签 (逗号分隔)</label>
-        <input type="text" name="tags" value={tutorial.tags.join(', ')} class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">封面图</label>
-        <input type="file" id="coverInput" accept="image/*" class="mb-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-        <input type="hidden" name="coverImage" id="coverImageUrl" value={tutorial.coverImage || ''} />
-        <div id="coverPreview" class={tutorial.coverImage ? 'w-48 h-32 bg-slate-200 dark:bg-slate-600 rounded-lg overflow-hidden' : 'hidden w-48 h-32 bg-slate-200 dark:bg-slate-600 rounded-lg overflow-hidden'}>
-          <img id="coverPreviewImg" src={tutorial.coverImage || ''} class="w-full h-full object-cover" />
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-700/50">
+      <div class="max-w-6xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <a href={`${basePath}/admin`} class="group flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <span class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </span>
+              <span class="font-medium">返回</span>
+            </a>
+            <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+              编辑教程
+            </h1>
+          </div>
+          
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-slate-500 dark:text-slate-400">
+              自动保存已启用
+            </span>
+          </div>
         </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">视频链接</label>
-        <input type="url" name="videoUrl" value={tutorial.videoUrl || ''} class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">内容 *</label>
-        <textarea name="content" required rows="15" class="w-full px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-mono">{tutorial.content}</textarea>
-      </div>
-      <div class="flex gap-4">
-        <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-          保存
-        </button>
-        <a href={`${basePath}/admin`} class="px-6 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-          取消
-        </a>
-      </div>
-    </form>
+    </header>
+    
+    <main class="max-w-6xl mx-auto px-6 py-8">
+      <form id="tutorialForm" class="space-y-8">
+        <input type="hidden" name="slug" value={tutorial.slug} />
+        <!-- Title & Author -->
+        <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-3xl border border-slate-200/50 dark:border-slate-700/50 p-8 shadow-xl shadow-blue-500/5">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-violet-500 text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white">基本信息</h2>
+          </div>
+          
+          <div class="space-y-5">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">教程标题</label>
+              <input 
+                type="text" 
+                name="title" 
+                required 
+                value={tutorial.title} 
+                class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-700/50 text-slate-800 dark:text-white text-lg font-medium placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md focus:shadow-blue-500/20"
+                placeholder="输入教程标题"
+              />
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">作者</label>
+                <input 
+                  type="text" 
+                  name="author" 
+                  required 
+                  value={tutorial.author} 
+                  class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-700/50 text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md focus:shadow-blue-500/20"
+                  placeholder="作者名称"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">标签</label>
+                <input 
+                  type="text" 
+                  name="tags" 
+                  value={tutorial.tags.join(', ')} 
+                  class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-700/50 text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md focus:shadow-blue-500/20"
+                  placeholder="React, TypeScript, 教程"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">简短描述</label>
+              <textarea 
+                name="description" 
+                required 
+                rows="2"
+                class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-700/50 text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md focus:shadow-blue-500/20 resize-none"
+                placeholder="简要描述教程内容（将显示在教程列表中）"
+              >{tutorial.description}</textarea>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Media -->
+        <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-3xl border border-slate-200/50 dark:border-slate-700/50 p-8 shadow-xl shadow-purple-500/5">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white">封面与链接</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">封面图片</label>
+              <input type="file" id="coverInput" accept="image/*" class="hidden" />
+              <label for="coverInput" class="group flex flex-col items-center justify-center gap-3 w-full h-48 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-all bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-700/50 dark:to-slate-600/50 hover:from-blue-50 hover:to-violet-50 dark:hover:from-blue-900/20 dark:hover:to-violet-900/20">
+                <div class="p-4 rounded-full bg-white dark:bg-slate-600 shadow-lg group-hover:scale-110 transition-transform">
+                  <svg class="w-8 h-8 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span class="text-sm text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">点击上传封面图</span>
+              </label>
+              <input type="hidden" name="coverImage" id="coverImageUrl" value={tutorial.coverImage || ''} />
+              <div id="coverPreview" class={`mt-4 ${tutorial.coverImage ? '' : 'hidden'}`}>
+                <div class="relative rounded-2xl overflow-hidden shadow-lg group">
+                  <img id="coverPreviewImg" src={tutorial.coverImage || ''} alt="" class="w-full h-40 object-cover" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                    <button type="button" id="removeCover" class="px-4 py-2 rounded-full bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors shadow-lg">
+                      移除图片
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">视频链接</label>
+              <input 
+                type="url" 
+                name="videoUrl" 
+                value={tutorial.videoUrl || ''} 
+                class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white/80 dark:bg-slate-700/50 text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md focus:shadow-blue-500/20"
+                placeholder="https://youtube.com/..."
+              />
+              <p class="mt-2 text-xs text-slate-400">支持 YouTube、Bilibili 等视频链接</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-3xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-xl shadow-green-500/5">
+          <div class="flex items-center justify-between px-8 py-5 bg-gradient-to-r from-slate-50 to-white dark:from-slate-700/50 dark:to-slate-800/50 border-b border-slate-200/50 dark:border-slate-700/50">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h2 class="text-lg font-bold text-slate-800 dark:text-white">教程内容</h2>
+              <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">Markdown</span>
+            </div>
+            
+            <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-700">
+              <button type="button" id="tabWrite" class="tab-btn px-5 py-2.5 text-sm font-medium rounded-xl transition-all bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                编辑
+              </button>
+              <button type="button" id="tabPreview" class="tab-btn px-5 py-2.5 text-sm font-medium rounded-xl transition-all text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-600/50 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                预览
+              </button>
+            </div>
+          </div>
+          
+          <div id="panelWrite" class="p-6">
+            <textarea 
+              name="content" 
+              id="contentEditor" 
+              required 
+              rows="20" 
+              class="w-full px-6 py-5 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-800 dark:text-white font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              placeholder="# 标题
+
+## 章节
+
+内容...
+
+```javascript
+// 代码示例
+```"
+            >{tutorial.rawContent}</textarea>
+          </div>
+          
+          <div id="panelPreview" class="hidden">
+            <div id="contentPreview" class="prose prose-slate dark:prose-invert max-w-none p-8 mx-auto
+              prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white
+              prose-h1:text-3xl prose-h1:font-black prose-h1:mb-8 prose-h1:bg-gradient-to-r prose-h1:from-blue-600 prose-h1:to-violet-600 prose-h1:bg-clip-text prose-h1:text-transparent
+              prose-h2:text-2xl prose-h2:border-b-2 prose-h2:border-blue-500/30 prose-h2:pb-3 prose-h2:mt-10 prose-h2:mb-5
+              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
+              prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-8 prose-p:my-6
+              prose-a:text-blue-600 hover:prose-a:underline
+              prose-code:text-rose-600 dark:text-rose-400 prose-code:bg-rose-50 dark:prose-code:bg-rose-900/30 prose-code:px-2 prose-code:py-1 prose-code:rounded-lg prose-code:text-sm prose-code:font-semibold prose-code:before:content-none prose-code:after:content-none
+              prose-pre:bg-gradient-to-br prose-pre:from-slate-800 prose-pre:to-slate-900 prose-pre:rounded-2xl prose-pre:shadow-2xl prose-pre:my-8 prose-pre:overflow-hidden
+              prose-pre:border prose-pre:border-slate-700/50
+              prose-img:rounded-2xl prose-img:shadow-xl prose-img:my-8
+              prose-blockquote:border-l-4 prose-blockquote:border-gradient-to-b prose-blockquote:from-blue-500 prose-blockquote:to-violet-500 prose-blockquote:bg-gradient-to-r prose-blockquote:from-blue-50/80 prose-blockquote:to-violet-50/80 dark:prose-blockquote:from-blue-900/30 dark:prose-blockquote:to-violet-900/30 prose-blockquote:py-5 prose-blockquote:px-6 prose-blockquote:not-italic prose-blockquote:rounded-r-2xl
+              prose-li:my-3
+              prose-ul:my-5 prose-ol:my-5
+              prose-hr:border-slate-200 dark:prose-hr:border-slate-700 prose-hr:my-10 prose-hr:bg-gradient-to-r prose-hr:from-transparent prose-hr:via-slate-200 dark:prose-hr:via-slate-700 prose-hr:to-transparent prose-hr:h-1
+              prose-strong:font-bold prose-strong:text-slate-800 dark:prose-strong:text-white">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex flex-col-reverse sm:flex-row gap-4 justify-end pt-4">
+          <a href={`${basePath}/admin`} class="px-8 py-4 text-center border-2 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all font-semibold">
+            取消编辑
+          </a>
+          <button type="submit" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all flex items-center justify-center gap-3 text-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            保存教程
+          </button>
+        </div>
+      </form>
+    </main>
   </div>
   
+  
+  
   <script>
-    const form = document.getElementById('tutorialForm');
+    import { marked } from 'marked';
+
+    const contentEditor = document.getElementById('contentEditor') as HTMLTextAreaElement;
+    const contentPreview = document.getElementById('contentPreview');
     const coverInput = document.getElementById('coverInput') as HTMLInputElement;
     const coverImageUrl = document.getElementById('coverImageUrl') as HTMLInputElement;
     const coverPreview = document.getElementById('coverPreview');
     const coverPreviewImg = document.getElementById('coverPreviewImg') as HTMLImageElement;
+    const removeCover = document.getElementById('removeCover');
     let uploadedCoverUrl = '';
+
+    function updatePreview() {
+      if (contentPreview && contentEditor) {
+        contentPreview.innerHTML = marked.parse(contentEditor.value) as string;
+      }
+    }
+
+    contentEditor?.addEventListener('input', updatePreview);
+    updatePreview();
+
+    const tabWrite = document.getElementById('tabWrite');
+    const tabPreview = document.getElementById('tabPreview');
+    const panelWrite = document.getElementById('panelWrite');
+    const panelPreview = document.getElementById('panelPreview');
+
+    function switchTab(tab: 'write' | 'preview') {
+      if (tab === 'write') {
+        tabWrite?.classList.add('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabWrite?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        tabPreview?.classList.remove('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabPreview?.classList.add('text-slate-600', 'dark:text-slate-400');
+        panelWrite?.classList.remove('hidden');
+        panelPreview?.classList.add('hidden');
+      } else {
+        tabPreview?.classList.add('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabPreview?.classList.remove('text-slate-600', 'dark:text-slate-400');
+        tabWrite?.classList.remove('bg-white', 'dark:bg-slate-600', 'text-blue-600', 'dark:text-blue-400', 'shadow-sm');
+        tabWrite?.classList.add('text-slate-600', 'dark:text-slate-400');
+        panelPreview?.classList.remove('hidden');
+        panelWrite?.classList.add('hidden');
+        updatePreview();
+      }
+    }
+
+    tabWrite?.addEventListener('click', () => switchTab('write'));
+    tabPreview?.addEventListener('click', () => switchTab('preview'));
     
     coverInput?.addEventListener('change', async () => {
       const file = coverInput.files?.[0];
@@ -97,7 +321,15 @@ if (!tutorial) {
       }
     });
     
-    form?.addEventListener('submit', async (e) => {
+    removeCover?.addEventListener('click', () => {
+      uploadedCoverUrl = '';
+      coverImageUrl.value = '';
+      coverPreviewImg.src = '';
+      coverPreview?.classList.add('hidden');
+      coverInput.value = '';
+    });
+    
+    document.getElementById('tutorialForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const coverImageInput = document.querySelector('input[name="coverImage"]') as HTMLInputElement;
@@ -105,24 +337,18 @@ if (!tutorial) {
         coverImageInput.value = uploadedCoverUrl;
       }
       
-      const formData = new FormData(form as HTMLFormElement);
+      const form = document.getElementById('tutorialForm') as HTMLFormElement;
+      const formData = new FormData(form);
       
       try {
-        const response = await fetch('/xuanchen_content/api/tutorials/edit', {
+        await fetch('/xuanchen_content/api/tutorials/edit', {
           method: 'POST',
           body: formData,
         });
         
-        const result = await response.json();
-        
-        if (response.ok) {
-          alert('保存成功！');
-          window.location.href = '/xuanchen_content/admin';
-        } else {
-          alert('保存失败: ' + (result.error || '未知错误'));
-        }
+        window.location.href = '/xuanchen_content/admin?success=1';
       } catch (error) {
-        console.error(error);
+        console.error('Save failed:', error);
         alert('保存失败');
       }
     });

@@ -422,3 +422,247 @@ xuanchen_content/
 - 移动端响应式优化
 - 标签云功能实现
 - 管理后台入口修复
+
+---
+
+## 2026-03-19
+
+### 任务：运行项目 & 修复登录 API 问题
+
+#### 1. 项目启动
+
+**问题**: 运行 `npm run dev` 后页面加载正常，但登录时 XHR 请求报错
+
+**错误信息**:
+```
+POST http://localhost:4321/xuanchen_content/api/auth/login
+Error: The service is no longer running
+at ...\vite\node_modules\esbuild\lib\main.js:718:38
+```
+
+#### 2. 排查过程
+
+**步骤 1**: 检查 API 端点
+- 找到 `src/pages/api/auth/login.ts`
+- 确认代码逻辑正常，使用 `better-sqlite3` 进行用户验证
+
+**步骤 2**: 测试 API 响应
+```bash
+curl -X POST http://localhost:4321/xuanchen_content/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+# 返回: {"error":"请求体为空"}
+```
+
+**步骤 3**: 检查配置文件
+- 发现 `astro.config.mjs` 中 `output: 'static'` 与 node adapter 冲突
+- API 路由需要 SSR 模式
+
+#### 3. 解决方案
+
+**修改文件**: `astro.config.mjs`
+
+```javascript
+// 修改前
+output: 'static',
+
+// 修改后
+output: 'server',
+```
+
+**修改原因**:
+- `@astrojs/node` adapter 需要 `output: 'server'` 才能正确处理 API 路由
+- `output: 'static'` 会将所有页面编译为静态文件，导致 API 路由无法接收 POST 请求
+
+#### 4. 验证结果
+
+修复后 API 正常响应：
+```bash
+curl -X POST http://localhost:4321/xuanchen_content/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+# 返回: {"success":true,"user":{"id":1,"username":"admin","email":null}}
+```
+
+#### 5. 相关文件
+
+| 文件 | 说明 |
+|------|------|
+| `astro.config.mjs` | 修改 `output` 配置 |
+
+#### 6. 今日产出
+- 修复 Astro SSR 配置问题
+- 登录 API 恢复正常
+- 项目可正常开发测试
+
+---
+
+### 任务：评论功能优化 & 主题切换
+
+#### 1. 评论发表功能修复
+
+**问题**: 用户登录后发表评论无反应
+
+**排查**:
+- 检查 `src/pages/api/comments/index.ts` API 正常
+- 测试 API 直接调用成功
+- 发现 `[slug].astro` 中评论加载逻辑有问题
+
+**Bug 1**: API 返回 `{ comments: [...] }`，代码直接当数组使用
+```javascript
+// 修复前
+const comments = await res.json();
+
+// 修复后
+const data = await res.json();
+const comments = data.comments || [];
+```
+
+**Bug 2**: 提交评论后 `reset()` 清空了隐藏的用户名字段
+```javascript
+// 修复后
+if (userStr) {
+  const user = JSON.parse(userStr);
+  document.getElementById('commentUsername').value = user.username;
+}
+```
+
+#### 2. 评论时间线排版优化
+
+**需求演进**:
+1. 最初卡片式布局 → 用户反馈不够精美
+2. 左右交替时间线 → 用户觉得复杂
+3. 左侧细线时间线 → 颜色太深
+4. 最终方案：可切换主题的精美评论区
+
+#### 3. 评论区主题切换功能
+
+**新增功能**: 支持三种春日主题切换
+
+| 主题 | 图标 | 配色 |
+|------|------|------|
+| 樱花 | 🌸 | 粉色渐变 |
+| 油菜花 | 🌼 | 黄色渐变 |
+| 春意盎然 | 🌿 | 绿色渐变 |
+
+**实现方式**:
+- 整个评论区容器背景随主题变化
+- 时间线颜色随主题变化
+- 输入框、按钮、卡片颜色统一主题色
+- 主题选择保存在 sessionStorage
+
+**修改文件**: `src/pages/tutorials/[slug].astro`
+
+**关键代码**:
+```javascript
+const themes = {
+  sakura: {
+    bg: 'linear-gradient(135deg, rgba(252,231,243,0.5) ...)',
+    timeline: 'linear-gradient(to bottom, #f9a8d4, ...)',
+    dot: 'from-pink-300 to-pink-200',
+    // ...
+  },
+  canola: { /* 黄色主题 */ },
+  spring: { /* 绿色主题 */ }
+};
+
+window.setCommentTheme = function(theme) {
+  // 切换整个评论区的主题样式
+};
+```
+
+#### 4. 今日产出
+- 修复评论发表功能
+- 实现评论区主题切换
+- 樱花/油菜花/春意盎然三种主题
+- 主题记忆功能
+
+---
+
+### 任务：评论区 UI 优化 & 交互完善
+
+#### 1. 时间线树藤样式
+
+**实现方式**:
+- 使用 SVG 绘制弯曲的藤蔓线条
+- 藤蔓上有自然分支的小枝
+- 渐变色从主题色到透明
+
+```html
+<svg id="timelineSvg">
+  <path d="M 40 0 Q 45 50 38 100 T 42 200..." stroke="url(#vineGrad)"/>
+  <path d="M 40 80 Q 55 85 65 82" stroke="#f9a8d4" opacity="0.3"/>
+</svg>
+```
+
+#### 2. 泡泡氛围背景
+
+**实现方式**:
+- 多个半透明渐变泡泡分布在评论区
+- 使用 `animate-pulse` 动画效果
+- 不同大小和位置错落分布
+
+```html
+<div class="bubble absolute w-32 h-32 rounded-full bg-gradient-to-br from-pink-200/30 blur-2xl animate-pulse"></div>
+```
+
+#### 3. 评论折叠功能
+
+**实现方式**:
+- 点击"收起/展开"按钮控制评论区显示
+- 使用 `max-height` 和 `opacity` 实现平滑动画
+- 时间线同步折叠
+
+```javascript
+window.toggleComments = function() {
+  // 收起/展开评论区内容
+  // 同步时间线高度变化
+};
+```
+
+#### 4. 主题切换完善
+
+**同步更新的元素**:
+- 背景泡泡颜色
+- 标题和评论数文字颜色
+- 展开/收起按钮颜色
+- 时间线（树藤）颜色
+- 输入框边框颜色
+- 提交按钮配色（含文字颜色）
+- 登录按钮配色
+- 所有评论卡片颜色
+
+**按钮文字颜色优化**:
+- 浅色模式：深色文字（提高对比度）
+- 深色模式：浅色文字
+```javascript
+sakura: {
+  buttonText: 'text-pink-900 dark:text-pink-100',
+  // ...
+}
+```
+
+#### 5. 空评论验证
+
+**交互流程**:
+1. 用户未填写内容点击提交
+2. 评论框显示红色边框和脉冲动画
+3. 占位符变为"请输入评论内容..."
+4. 自动聚焦到评论框
+5. 用户输入时自动清除错误状态
+
+```javascript
+if (!content) {
+  commentInput.classList.add('!border-red-400', '!ring-2', '!animate-pulse');
+  commentInput.placeholder = '请输入评论内容...';
+  commentInput.focus();
+  return;
+}
+```
+
+#### 6. 今日产出
+- 时间线树藤样式
+- 泡泡氛围背景
+- 评论折叠功能
+- 主题完整切换同步
+- 空评论验证提示

@@ -11,18 +11,34 @@ const basePath = '/xuanchen_content';
 ---
 
 <Layout title="泫晨云栖 - 教程网站">
-  <section class="relative py-20 bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section class="relative py-20 bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="floating-shape shape-1"></div>
+      <div class="floating-shape shape-2"></div>
+      <div class="floating-shape shape-3"></div>
+      <div class="floating-shape shape-4"></div>
+      <div class="floating-shape shape-5"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="text-center">
-        <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent mb-4">
+        <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent mb-4 animate-fade-in-up">
           泫晨云栖
         </h1>
-        <p class="text-lg text-slate-600 dark:text-slate-300 mb-8">
+        <p class="text-lg text-slate-600 dark:text-slate-300 mb-8 animate-fade-in-up" style="animation-delay: 0.2s">
           发现最优质的教程资源，开启你的学习之旅
         </p>
       </div>
     </div>
   </section>
+
+  {tagCounts.length > 0 && (
+    <section class="py-12 bg-white dark:bg-slate-800/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">热门标签</h2>
+        <TagCloud tags={tagCounts} maxTags={15} />
+      </div>
+    </section>
+  )}
 
   <section class="py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,12 +63,75 @@ const basePath = '/xuanchen_content';
     </div>
   </section>
 
-    {tagCounts.length > 0 && (
-    <section class="py-12 bg-white dark:bg-slate-800/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">热门标签</h2>
-        <TagCloud tags={tagCounts} maxTags={15} />
-      </div>
-    </section>
-  )}
+  <style>
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.3;
+      }
+    }
+    .floating-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: float 8s ease-in-out infinite;
+    }
+    .shape-1 {
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, #60a5fa 0%, #818cf8 100%);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+    .shape-2 {
+      width: 250px;
+      height: 250px;
+      background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+      top: 50%;
+      right: -80px;
+      animation-delay: 2s;
+    }
+    .shape-3 {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+      bottom: -50px;
+      left: 20%;
+      animation-delay: 4s;
+    }
+    .shape-4 {
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(135deg, #93c5fd 0%, #a5b4fc 100%);
+      top: 30%;
+      left: 60%;
+      animation-delay: 1s;
+    }
+    .shape-5 {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, #c4b5fd 0%, #ddd6fe 100%);
+      bottom: 20%;
+      right: 10%;
+      animation-delay: 3s;
+    }
+  </style>
 </Layout>
