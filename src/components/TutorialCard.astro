@@ -40,6 +40,11 @@ const gradient = gradients[Math.abs(tutorial.slug.split('').reduce((a, b) => a +
     
     <div class="p-5 flex flex-col flex-grow">
       <div class="flex items-center gap-2 mb-3">
+        {tutorial.isPinned && (
+          <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-xs font-bold flex items-center gap-1">
+            📌 置顶
+          </span>
+        )}
         {tutorial.tags.slice(0, 2).map(tag => (
           <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium">
             {tag}

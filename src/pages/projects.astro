@@ -1,72 +1,60 @@
 ---
 import Layout from '../layouts/Layout.astro';
-const basePath = '/xuanchen_content';
+import PageLayout from '../components/PageLayout.astro';
+import Card from '../components/Card.astro';
+import { getAllProjects } from '../lib/auth';
 
-const projects = [
-  {
-    name: '泫晨云栖',
-    description: '本教程网站源码，基于 Astro + React + TailwindCSS 构建',
-    url: 'https://github.com/Thomas-Liang/xuanchen_jiaocheng',
-    stars: 0,
-    forks: 0,
-  },
-  {
-    name: 'xuanchen_image_bed',
-    description: 'GitHub 图床仓库，用于存储网站图片资源',
-    url: 'https://github.com/Thomas-Liang/xuanchen_image_bed',
-    stars: 0,
-    forks: 0,
-  },
-];
+const basePath = '/xuanchen_content';
+const projects = getAllProjects();
 ---
 
-<Layout title="开源项目 - 泫晨云栖">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-8">开源项目</h1>
-    
+<Layout 
+  title="开源项目"
+  description="泫晨云栖的开源项目列表，展示我们开发和维护的技术项目"
+>
+  <PageLayout 
+    badge="💻 开源项目"
+    badgeColor="violet"
+    subtitle="这里展示了我们开发和维护的技术项目，欢迎 Star 和 Fork"
+  >
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {projects.map(project => (
-        <a href={project.url} target="_blank" rel="noopener noreferrer" class="block p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all">
-          <div class="flex items-start justify-between">
-            <div>
-              <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-                {project.name}
-              </h2>
-              <p class="text-slate-500 dark:text-slate-400">{project.description}</p>
+      {projects.map((project) => (
+        <Card href={project.url} padding="md">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-start gap-3">
+              <span class="text-4xl">{project.icon || '📦'}</span>
+              <div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200">
+                  {project.name}
+                </h2>
+              </div>
             </div>
-            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </div>
-          <div class="flex items-center gap-4 mt-4 text-sm text-slate-400">
-            <span class="flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-              {project.stars}
-            </span>
-            <span class="flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              {project.forks}
-            </span>
-          </div>
-        </a>
+          <p class="text-slate-500 dark:text-slate-400 mb-4">{project.description}</p>
+          <span class="text-sm text-blue-600 dark:text-blue-400 font-medium">访问 GitHub →</span>
+        </Card>
       ))}
     </div>
-    
-    <div class="mt-12 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
-      <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">贡献项目</h2>
-      <p class="text-slate-500 dark:text-slate-400 mb-4">
-        如果你有好的项目想要分享，或者想要为现有项目贡献代码，欢迎联系我们！
-      </p>
-      <a href="mailto:xuanchenyiran@163.com" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        xuanchenyiran@163.com
-      </a>
+
+    {projects.length === 0 && (
+      <div class="text-center py-16">
+        <div class="text-6xl mb-4">📦</div>
+        <h2 class="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">暂无开源项目</h2>
+        <p class="text-slate-500 dark:text-slate-400">开源项目即将上线</p>
+      </div>
+    )}
+
+    <div class="mt-12 text-center">
+      <div class="inline-block p-8 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">贡献项目</h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">如果你有好的项目想要分享，欢迎联系我们</p>
+        <a href="mailto:xuanchenyiran@163.com" class="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 transition-colors">
+          联系我们
+        </a>
+      </div>
     </div>
-  </div>
+  </PageLayout>
 </Layout>

@@ -17,6 +17,7 @@
     "better-sqlite3": "^11.7.0",
     "gray-matter": "^4.0.3",
     "marked": "^17.0.4",
+    "nodemailer": "^8.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwindcss": "^3.4.17",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
     "@types/better-sqlite3": "^7.6.12",
+    "@types/nodemailer": "^7.0.11",
     "typescript": "^5.7.3",
     "vitest": "^3.0.4"
   }

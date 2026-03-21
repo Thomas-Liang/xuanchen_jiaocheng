@@ -10,6 +10,7 @@ export interface Tutorial {
   videoUrl?: string;
   projectUrl?: string;
   isDraft: boolean;
+  isPinned?: boolean;
   readingTime: number;
   content?: string;
   rawContent?: string;

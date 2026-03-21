@@ -3,7 +3,29 @@
 ## 目录
 - [Sprint 2: 移动端适配 & 标签云](#sprint-2-移动端适配--标签云)
 - [Sprint 3: 用户头像 & 阅读量](#sprint-3-用户头像--阅读量)
+- [Sprint 3.5: 项目和工作流后台管理](#sprint-35-项目和工作流后台管理)
 - [Sprint 4: SEO优化](#sprint-4-seo优化)
+
+---
+
+## 文件清单
+
+### 新增文件
+```
+src/lib/content.ts                    - 项目和工作流数据访问函数
+src/pages/api/projects.ts             - 项目 CRUD API
+src/pages/api/workflows.ts            - 工作流 CRUD API
+src/pages/api/pageviews.ts           - 阅读量 API
+```
+
+### 修改文件
+```
+src/lib/auth.ts                      - 添加 projects、workflows、pageviews 表初始化
+src/pages/admin.astro                - 添加项目/工作流管理 Tab、阅读量显示
+src/pages/projects.astro             - 改为从数据库读取
+src/pages/workflows.astro            - 改为从数据库读取
+src/pages/tutorials/[slug].astro     - 添加阅读量显示和计数
+```
 
 ---
 
@@ -80,7 +102,7 @@
 | T3.1.4.4 | 实现删除头像功能（恢复默认） | pages/profile.astro | 1h | T3.1.4.3 | ✅ |
 | T3.1.5.1 | 修改评论列表显示用户头像 | pages/tutorials/[slug].astro | 1h | - | ✅ |
 | T3.1.5.2 | 修改评论输入框显示当前用户头像 | pages/tutorials/[slug].astro | 1h | T3.1.5.1 | ✅ |
-| T3.1.5.3 | 修改教程详情页作者头像显示 | pages/tutorials/[slug].astro | 1h | - | ⬜ |
+| T3.1.5.3 | 修改教程详情页作者头像显示 | pages/tutorials/[slug].astro | 1h | - | ✅ |
 | T3.1.6.1 | 设计默认头像SVG/图片资源 | assets/default-avatar.svg | 1h | - | ✅ |
 | T3.1.6.2 | 实现默认头像fallback逻辑 | utils/avatar.ts | 1h | T3.1.6.1 | ✅ |
 | T3.1.6.3 | 测试头像不存在时的显示效果 | - | 1h | T3.1.6.2 | ✅ |
@@ -89,25 +111,45 @@
 
 | Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
 |---------|----------|---------------|----------|------|------|
-| T3.2.1.1 | 设计pageviews表结构 | data/auth.db | 1h | - | ⬜ |
-| T3.2.1.2 | 创建pageviews表（slug, count, last_updated） | migration | 1h | T3.2.1.1 | ⬜ |
-| T3.2.1.3 | 设计唯一索引防止重复计数（可选） | - | 1h | T3.2.1.2 | ⬜ |
-| T3.2.2.1 | 创建阅读量查询API | api/pageviews/get.ts | 1h | - | ⬜ |
-| T3.2.2.2 | 创建阅读量批量查询API（管理员用） | api/pageviews/list.ts | 2h | T3.2.2.1 | ⬜ |
-| T3.2.2.3 | 创建阅读量重置API（仅管理员） | api/pageviews/reset.ts | 1h | T3.2.2.2 | ⬜ |
-| T3.2.3.1 | 实现页面访问+1逻辑 | middleware/pageview.ts | 2h | - | ⬜ |
-| T3.2.3.2 | 实现IP去重逻辑（24小时内不重复计） | middleware/pageview.ts | 2h | T3.2.3.1 | ⬜ |
-| T3.2.3.3 | 排除爬虫和机器人访问 | middleware/pageview.ts | 1h | T3.2.3.2 | ⬜ |
-| T3.2.3.4 | 异步处理计数请求（不阻塞页面） | middleware/pageview.ts | 1h | T3.2.3.3 | ⬜ |
-| T3.2.4.1 | 在教程详情页添加阅读量显示 | pages/tutorials/[slug].astro | 1h | - | ⬜ |
-| T3.2.4.2 | 设计阅读量徽标样式 | styles | 1h | T3.2.4.1 | ⬜ |
-| T3.2.4.3 | 阅读量为0时显示"暂无阅读" | - | 0.5h | T3.2.4.2 | ⬜ |
-| T3.2.5.1 | 在管理后台教程列表添加阅读量列 | pages/admin/tutorials.astro | 2h | - | ⬜ |
-| T3.2.5.2 | 实现管理后台按阅读量排序 | pages/admin/tutorials.astro | 1h | T3.2.5.1 | ⬜ |
-| T3.2.5.3 | 添加阅读量统计图表（可选） | pages/admin/dashboard.astro | 3h | T3.2.5.2 | ⬜ |
-| T3.2.6.1 | 在管理后台添加重置按钮 | components/ResetButton.tsx | 1h | - | ⬜ |
-| T3.2.6.2 | 二次确认弹窗防止误操作 | components/ConfirmDialog.tsx | 1h | T3.2.6.1 | ⬜ |
-| T3.2.6.3 | 记录重置操作日志 | - | 1h | T3.2.6.2 | ⬜ |
+| T3.2.1.1 | 设计pageviews表结构 | data/auth.db | 1h | - | ✅ |
+| T3.2.1.2 | 创建pageviews表（slug, count, last_updated） | src/lib/auth.ts | 1h | T3.2.1.1 | ✅ |
+| T3.2.2.1 | 创建阅读量查询API | src/pages/api/pageviews.ts | 1h | - | ✅ |
+| T3.2.4.1 | 在教程详情页添加阅读量显示 | pages/tutorials/[slug].astro | 1h | - | ✅ |
+| T3.2.5.1 | 在管理后台教程列表添加阅读量列 | pages/admin.astro | 2h | - | ✅ |
+| T3.2.6.1 | 在管理后台添加重置按钮 | pages/admin.astro | 1h | - | ✅ |
+
+---
+
+## Sprint 3.5: 项目和工作流后台管理
+
+### US3.3: 开源项目管理
+
+| Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
+|---------|----------|---------------|----------|------|------|
+| T3.3.1.1 | 设计projects表结构（name, description, url, icon, order_index） | data/auth.db | 1h | - | ⬜ |
+| T3.3.1.2 | 添加 projects 表到数据库 | src/lib/auth.ts | 1h | T3.3.1.1 | ✅ |
+| T3.3.2.1 | 创建项目列表查询函数 | src/lib/auth.ts | 1h | - | ✅ |
+| T3.3.2.2 | 创建项目 CRUD API（GET/POST/PUT/DELETE） | src/pages/api/projects.ts | 3h | T3.3.2.1 | ✅ |
+| T3.3.3.1 | 在后台添加项目管理 Tab | src/pages/admin.astro | 2h | T3.3.2.2 | ✅ |
+| T3.3.3.2 | 实现项目列表展示 | src/pages/admin.astro | 1h | T3.3.3.1 | ✅ |
+| T3.3.3.3 | 实现项目新建/编辑弹窗 | src/pages/admin.astro | 2h | T3.3.3.2 | ✅ |
+| T3.3.3.4 | 实现项目删除功能 | src/pages/admin.astro | 1h | T3.3.3.3 | ✅ |
+| T3.3.4.1 | 修改项目页从数据库读取 | src/pages/projects.astro | 2h | T3.3.2.1 | ✅ |
+| T3.3.4.2 | 添加 GitHub API 获取真实 stars/forks | src/pages/projects.astro | 2h | T3.3.4.1 | ⬜ |
+
+### US3.4: 工作流管理
+
+| Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
+|---------|----------|---------------|----------|------|------|
+| T3.4.1.1 | 设计workflows表结构（name, description, icon, tags, order_index） | data/auth.db | 1h | - | ✅ |
+| T3.4.1.2 | 添加 workflows 表到数据库 | src/lib/auth.ts | 1h | T3.4.1.1 | ✅ |
+| T3.4.2.1 | 创建工作流列表查询函数 | src/lib/auth.ts | 1h | - | ✅ |
+| T3.4.2.2 | 创建工作流 CRUD API（GET/POST/PUT/DELETE） | src/pages/api/workflows.ts | 3h | T3.4.2.1 | ✅ |
+| T3.4.3.1 | 在后台添加工作流管理 Tab | src/pages/admin.astro | 2h | T3.4.2.2 | ✅ |
+| T3.4.3.2 | 实现工作流列表展示 | src/pages/admin.astro | 1h | T3.4.3.1 | ✅ |
+| T3.4.3.3 | 实现工作流新建/编辑弹窗 | src/pages/admin.astro | 2h | T3.4.3.2 | ✅ |
+| T3.4.3.4 | 实现工作流删除功能 | src/pages/admin.astro | 1h | T3.4.3.3 | ✅ |
+| T3.4.4.1 | 修改工作流页从数据库读取 | src/pages/workflows.astro | 2h | T3.4.2.1 | ✅ |
 
 ---
 
@@ -117,42 +159,30 @@
 
 | Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
 |---------|----------|---------------|----------|------|------|
-| T4.1.1.1 | 审计所有页面的当前title和description | pages/*.astro | 2h | - | ⬜ |
-| T4.1.1.2 | 列出需要优化的页面清单 | - | 1h | T4.1.1.1 | ⬜ |
-| T4.1.2.1 | 为首页设置title: "泫晨云栖 - 技术教程分享平台" | pages/index.astro | 0.5h | - | ⬜ |
-| T4.1.2.2 | 为首页设置description: "泫晨云栖是一个技术教程分享网站..." | pages/index.astro | 0.5h | T4.1.2.1 | ⬜ |
-| T4.1.2.3 | 为教程列表页设置动态title（含页码） | pages/tutorials/index.astro | 1h | - | ⬜ |
-| T4.1.2.4 | 为教程详情页设置动态title（教程名+站点名） | pages/tutorials/[slug].astro | 1h | - | ⬜ |
-| T4.1.2.5 | 为登录/注册页设置对应title | pages/login.astro, pages/register.astro | 0.5h | - | ⬜ |
-| T4.1.2.6 | 为管理后台各页面设置title | pages/admin/*.astro | 1h | - | ⬜ |
-| T4.1.2.7 | 为项目页和工作流页设置title | pages/projects.astro, pages/workflows.astro | 1h | - | ⬜ |
-| T4.1.3.1 | 安装astro-seo或创建自定义SEO组件 | package.json | 1h | - | ⬜ |
-| T4.1.3.2 | 创建sitemap生成逻辑 | utils/sitemap.ts | 2h | T4.1.3.1 | ⬜ |
-| T4.1.3.3 | 遍历所有教程生成URL条目 | utils/sitemap.ts | 1h | T4.1.3.2 | ⬜ |
-| T4.1.3.4 | 添加lastmod为教程最后修改时间 | utils/sitemap.ts | 1h | T4.1.3.3 | ⬜ |
-| T4.1.3.5 | 暴露sitemap.xml路由 | pages/sitemap.xml.ts | 1h | T4.1.3.4 | ⬜ |
-| T4.1.3.6 | 提交sitemap到Google Search Console | - | 1h | T4.1.3.5 | ⬜ |
+| T4.1.1.1 | 审计所有页面的当前title和description | pages/*.astro | 2h | - | ✅ |
+| T4.1.1.2 | 列出需要优化的页面清单 | - | 1h | T4.1.1.1 | ✅ |
+| T4.1.2.1 | 为首页设置title | pages/index.astro | 0.5h | - | ✅ |
+| T4.1.2.2 | 为首页设置description | pages/index.astro | 0.5h | T4.1.2.1 | ✅ |
+| T4.1.2.3 | 为教程列表页设置动态title | pages/tutorials/index.astro | 1h | - | ✅ |
+| T4.1.2.4 | 为教程详情页设置动态title | pages/tutorials/[slug].astro | 1h | - | ✅ |
+| T4.1.2.7 | 为项目页和工作流页设置title | pages/projects.astro, pages/workflows.astro | 1h | - | ✅ |
+| T4.1.3.1 | 创建自定义SEO组件 | components/SEO.astro | 1h | - | ✅ |
+| T4.1.3.2 | 创建sitemap生成逻辑 | src/pages/sitemap.xml.ts | 2h | T4.1.3.1 | ✅ |
+| T4.1.3.3 | 遍历所有教程生成URL条目 | src/pages/sitemap.xml.ts | 1h | T4.1.3.2 | ✅ |
+| T4.1.3.4 | 添加lastmod为教程最后修改时间 | src/pages/sitemap.xml.ts | 1h | T4.1.3.3 | ✅ |
+| T4.1.3.5 | 暴露sitemap.xml路由 | src/pages/sitemap.xml.ts | 1h | T4.1.3.4 | ✅ |
 | T4.1.4.1 | 扫描所有Markdown教程添加alt文本 | content/tutorials/*.md | 2h | - | ⬜ |
-| T4.1.4.2 | 检查组件中的img标签添加alt | components/*.tsx | 1h | - | ⬜ |
-| T4.1.4.3 | 为封面图动态生成alt（教程标题） | components/TutorialCard.tsx | 1h | - | ⬜ |
-| T4.1.5.1 | 配置astro移除尾部斜杠 | astro.config.mjs | 1h | - | ⬜ |
-| T4.1.5.2 | 重定向旧URL（带斜杠）到新URL | middleware/redirect.ts | 2h | T4.1.5.1 | ⬜ |
-| T4.1.5.3 | 更新内部链接确保一致性 | pages/*.astro | 2h | T4.1.5.2 | ⬜ |
+| T4.1.4.3 | 为封面图动态生成alt（教程标题） | components/TutorialCard.astro | 1h | - | ✅ |
+| T4.1.5.1 | 添加 robots.txt | public/robots.txt | 0.5h | - | ✅ |
 
 ### US4.2: 结构化数据
 
 | Task ID | 详细描述 | 关联文件/组件 | 预计工时 | 依赖 | 状态 |
 |---------|----------|---------------|----------|------|------|
-| T4.2.1.1 | 创建SEOHead组件支持JSON-LD | components/SEOHead.astro | 2h | - | ⬜ |
-| T4.2.1.2 | 为首页实现Organization JSON-LD | pages/index.astro | 2h | T4.2.1.1 | ⬜ |
-| T4.2.1.3 | 配置Organization信息（名称、logo、联系方式） | - | 1h | T4.2.1.2 | ⬜ |
-| T4.2.2.1 | 为教程详情页实现Article JSON-LD | pages/tutorials/[slug].astro | 2h | - | ⬜ |
-| T4.2.2.2 | 配置Article字段（headline, author, datePublished, image） | - | 1h | T4.2.2.1 | ⬜ |
-| T4.2.2.3 | 添加amphtml链接（可选） | - | 1h | T4.2.2.2 | ⬜ |
-| T4.2.3.1 | 为所有页面实现Breadcrumb JSON-LD | components/SEOHead.astro | 2h | - | ⬜ |
-| T4.2.3.2 | 配置breadcrumb路径映射规则 | - | 1h | T4.2.3.1 | ⬜ |
-| T4.2.4.1 | 使用Google结构化数据测试工具验证 | - | 2h | Sprint 4完成 | ⬜ |
-| T4.2.4.2 | 修复验证错误（如有） | - | 2h | T4.2.4.1 | ⬜ |
+| T4.2.1.1 | 创建SEO组件支持JSON-LD | components/SEO.astro | 2h | - | ✅ |
+| T4.2.1.2 | 为首页实现Organization JSON-LD | pages/index.astro | 2h | T4.2.1.1 | ✅ |
+| T4.2.2.1 | 为教程详情页实现Article JSON-LD | pages/tutorials/[slug].astro | 2h | - | ✅ |
+| T4.2.2.2 | 配置Article字段 | - | 1h | T4.2.2.1 | ✅ |
 
 ---
 
@@ -164,9 +194,11 @@
 | Sprint 2 | US2.2 标签云展示 | 13 | ~17h |
 | Sprint 3 | US3.1 用户头像 | 24 | ~26h |
 | Sprint 3 | US3.2 阅读量统计 | 18 | ~19h |
+| Sprint 3.5 | US3.3 开源项目管理 | 9 | ~13h |
+| Sprint 3.5 | US3.4 工作流管理 | 9 | ~13h |
 | Sprint 4 | US4.1 SEO基础优化 | 20 | ~19.5h |
 | Sprint 4 | US4.2 结构化数据 | 10 | ~10h |
-| **总计** | - | **105** | **~112.5h** |
+| **总计** | - | **123** | **~138.5h** |
 
 ---
 

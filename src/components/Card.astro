@@ -1,0 +1,55 @@
+---
+export interface Props {
+  href?: string;
+  hover?: boolean;
+  padding?: 'sm' | 'md' | 'lg';
+  glass?: boolean;
+  gradient?: boolean;
+  class?: string;
+}
+
+const { 
+  href, 
+  hover = true, 
+  padding = 'md',
+  glass = true,
+  gradient = false,
+  class: className = '' 
+} = Astro.props;
+
+const paddingClasses = {
+  sm: 'p-5',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+const baseClasses = glass 
+  ? `bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm`
+  : `bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`;
+
+const hoverClasses = hover ? `
+  hover:bg-white/90 dark:hover:bg-slate-800/90 
+  hover:border-blue-200/80 dark:hover:border-blue-700/60 
+  hover:shadow-xl hover:shadow-blue-500/10
+  hover:-translate-y-1
+` : '';
+
+const gradientClasses = gradient ? `
+  bg-gradient-to-br from-white via-white to-blue-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-700/50
+` : '';
+---
+
+{href ? (
+  <a 
+    href={href} 
+    class={`${baseClasses} ${hoverClasses} ${gradientClasses} rounded-2xl transition-all duration-300 ${paddingClasses[padding]} ${className}`}
+  >
+    <slot />
+  </a>
+) : (
+  <div 
+    class={`${baseClasses} ${hoverClasses} ${gradientClasses} rounded-2xl transition-all duration-300 ${paddingClasses[padding]} ${className}`}
+  >
+    <slot />
+  </div>
+)}

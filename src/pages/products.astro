@@ -1,0 +1,77 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageLayout from '../components/PageLayout.astro';
+import Card from '../components/Card.astro';
+import { getAllProducts } from '../lib/auth';
+
+const basePath = '/xuanchen_content';
+const products = getAllProducts();
+---
+
+<Layout 
+  title="精选产品"
+  description="泫晨云栖推荐的优质产品和服务，帮助你提升开发效率"
+>
+  <PageLayout 
+    badge="精选推荐"
+    badgeIcon="🎁"
+    badgeColor="blue"
+    subtitle="这里收录了我们精选推荐的产品和服务，每一款都经过实际使用验证"
+  >
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {products.map((product) => (
+        <Card href={`${basePath}/products/${product.slug}`} padding="md">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-start gap-3">
+              <span class="text-4xl">{product.icon || '🎁'}</span>
+              <div>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200">
+                  {product.name}
+                </h2>
+              </div>
+            </div>
+            <svg class="w-6 h-6 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </div>
+          <p class="text-slate-500 dark:text-slate-400 mb-4">{product.description}</p>
+          <span class="text-sm text-blue-600 dark:text-blue-400 font-medium">查看详情 →</span>
+        </Card>
+      ))}
+    </div>
+
+    {products.length === 0 && (
+      <div class="text-center py-20">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-6">
+          <span class="text-4xl">🎁</span>
+        </div>
+        <h2 class="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">精选产品即将上线</h2>
+        <p class="text-slate-500 dark:text-slate-400">我们正在精心挑选优质产品，敬请期待</p>
+      </div>
+    )}
+
+    <!-- CTA -->
+    <div class="mt-16 relative">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 rounded-3xl blur-xl opacity-20"></div>
+      <div class="relative bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 rounded-3xl p-10 md:p-14 text-center text-white overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3"></div>
+        <div class="relative">
+          <h2 class="text-2xl md:text-3xl font-bold mb-4">推广合作</h2>
+          <p class="text-white/80 mb-8 max-w-xl mx-auto leading-relaxed">
+            如果你有优质的产品想要推荐给我们，欢迎联系我们进行合作，让更多开发者发现你的产品！
+          </p>
+          <a 
+            href="mailto:xuanchenyiran@163.com" 
+            class="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 font-bold rounded-full hover:bg-white/95 hover:shadow-2xl transition-all duration-300"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            联系我们合作
+          </a>
+        </div>
+      </div>
+    </div>
+  </PageLayout>
+</Layout>

@@ -11,7 +11,7 @@ export const OPTIONS: APIRoute = async () => {
   return new Response(null, { headers: corsHeaders });
 };
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const text = await request.text();
     console.log('Raw request body:', text);
@@ -44,6 +44,13 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
+
+    cookies.set('username', username, {
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7
+    });
 
     return new Response(JSON.stringify({ 
       success: true, 

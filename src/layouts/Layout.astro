@@ -1,17 +1,52 @@
 ---
 import '../styles/global.css';
+import SEO from '../components/SEO.astro';
 
 interface Props {
   title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  author?: string;
+  publishDate?: string;
+  modifiedDate?: string;
+  tags?: string[];
 }
 
-const { title = '泫晨云栖' } = Astro.props;
+const { 
+  title = '泫晨云栖',
+  description = '泫晨云栖是一个技术教程分享网站，提供高质量的编程教程和技术文章，帮助开发者快速成长',
+  image = '/og-image.png',
+  type = 'website',
+  author,
+  publishDate,
+  modifiedDate,
+  tags = []
+} = Astro.props;
 const basePath = '/xuanchen_content';
+const currentUser = Astro.cookies.get('username')?.value;
+const isAdmin = currentUser === 'admin';
 ---
 
 <!doctype html>
 <html lang="zh" class="scroll-smooth">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="index, follow" />
+    <link rel="icon" type="image/svg+xml" href={`${basePath}/favicon.svg`} />
+    <link rel="alternate" type="application/rss+xml" title="泫晨云栖 RSS" href="/rss.xml" />
+    <SEO 
+      title={title}
+      description={description}
+      image={image}
+      type={type}
+      author={author}
+      publishDate={publishDate}
+      modifiedDate={modifiedDate}
+      tags={tags}
+    />
     <script is:inline>
       // Show admin and profile links immediately on page load if user is logged in
       (function() {
@@ -31,38 +66,46 @@ const basePath = '/xuanchen_content';
         } catch(e) {}
       })();
     </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-    <header class="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-700/50">
+  <body class="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-800/60">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16 items-center">
-          <div class="flex items-center gap-8">
-            <a href={basePath + '/'} class="text-xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-              泫晨云栖
+          <div class="flex items-center gap-10">
+            <a href={basePath + '/'} class="group flex items-center gap-2">
+              <span class="text-2xl transition-transform group-hover:scale-110">☁️</span>
+              <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+                泫晨云栖
+              </span>
             </a>
             <div class="hidden md:flex gap-1">
-              <a href={basePath + '/'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+              <a href={basePath + '/'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
                 首页
               </a>
-              <a href={basePath + '/tutorials'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+              <a href={basePath + '/tutorials'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
                 教程
               </a>
-              <a href={basePath + '/projects'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+              <a href={basePath + '/projects'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
                 开源项目
               </a>
-              <a href={basePath + '/workflows'} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+              <a href={basePath + '/workflows'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
                 工作流
               </a>
-              <a id="profileNavLink" href={`${basePath}/profile`} class="profile-nav-link hidden px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
-                个人资料
+              <a href={basePath + '/products'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
+                精选产品
               </a>
-              <a id="adminNavLink" href={`${basePath}/admin`} class="admin-nav-link hidden px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
-                管理后台
+              {isAdmin && (
+                <>
+                  <a href={basePath + '/users'} class="nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
+                    用户
+                  </a>
+                  <a id="adminNavLink" href={`${basePath}/admin`} class="admin-nav-link nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
+                    管理后台
+                  </a>
+                </>
+              )}
+              <a id="profileNavLink" href={`${basePath}/profile`} class="profile-nav-link hidden nav-link px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-all">
+                个人资料
               </a>
             </div>
           </div>
@@ -84,7 +127,7 @@ const basePath = '/xuanchen_content';
               <a href={`${basePath}/login`} class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 font-medium transition-colors">
                 登录
               </a>
-              <a href={`${basePath}/register`} class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+              <a href={`${basePath}/register`} class="px-5 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all">
                 注册
               </a>
             </div>
@@ -117,6 +160,14 @@ const basePath = '/xuanchen_content';
           <a href={basePath + '/workflows'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             工作流
           </a>
+          <a href={basePath + '/products'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+            精选产品
+          </a>
+          {isAdmin && (
+            <a href={basePath + '/users'} class="block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+              用户
+            </a>
+          )}
           <a id="mobileProfileLink" href={`${basePath}/profile`} class="profile-nav-link hidden block px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             个人资料
           </a>
@@ -133,9 +184,102 @@ const basePath = '/xuanchen_content';
       <slot />
     </main>
     
-    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-8">
-      <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 dark:text-slate-400">
-        <p>© 2026 泫晨云栖. All rights reserved.</p>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg transform -translate-y-20 opacity-0 transition-all duration-300 z-[9999]">
+      <span id="toast-message"></span>
+    </div>
+    
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-blue-500 to-violet-500 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 opacity-0 invisible z-50 flex items-center justify-center" title="返回顶部">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+      </svg>
+    </button>
+    
+    <!-- Page Loading Overlay -->
+    <div id="pageLoader" class="fixed inset-0 bg-white dark:bg-slate-900 z-[9999] flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
+      <div class="text-center">
+        <div class="relative w-16 h-16 mx-auto mb-4">
+          <div class="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <p class="text-slate-500 dark:text-slate-400 animate-pulse">加载中...</p>
+      </div>
+    </div>
+    
+    <footer class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/60">
+      <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <!-- Brand -->
+          <div class="md:col-span-2">
+            <a href={basePath + '/'} class="inline-flex items-center gap-2 text-xl font-bold mb-4">
+              <span class="text-2xl">☁️</span>
+              <span class="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+                泫晨云栖
+              </span>
+            </a>
+            <p class="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
+              一个技术教程分享网站，提供高质量的编程教程和技术文章，帮助开发者快速成长。
+            </p>
+          </div>
+          
+          <!-- Quick Links -->
+          <div>
+            <h4 class="font-semibold text-slate-800 dark:text-slate-200 mb-4">快速链接</h4>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a href={basePath + '/tutorials'} class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  教程
+                </a>
+              </li>
+              <li>
+                <a href={basePath + '/projects'} class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  开源项目
+                </a>
+              </li>
+              <li>
+                <a href={basePath + '/products'} class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  精选产品
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Resources -->
+          <div>
+            <h4 class="font-semibold text-slate-800 dark:text-slate-200 mb-4">资源</h4>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <a href={basePath + '/sitemap.xml'} class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  Sitemap
+                </a>
+              </li>
+              <li>
+                <a href="mailto:xuanchenyiran@163.com" class="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  联系我们
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="pt-8 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            © 2026 泫晨云栖. All rights reserved.
+          </p>
+          <div class="flex items-center gap-4">
+            <a 
+              href="https://github.com/Thomas-Liang" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
     </footer>
     
@@ -206,7 +350,7 @@ const basePath = '/xuanchen_content';
           if (authButtons) {
             authButtons.innerHTML = `
               <a href="${basePath}/profile" class="flex items-center gap-2 px-3 py-1 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors">
-                <img id="headerAvatar" src="/avatars/default.svg" alt="${user.username}" class="w-7 h-7 rounded-full object-cover ring-2 ring-pink-200" onerror="this.style.display='none'" />
+                <img id="headerAvatar" src="${basePath}/avatars/default.svg" alt="${user.username}" class="w-7 h-7 rounded-full object-cover ring-2 ring-pink-200" onerror="this.style.display='none'" />
                 <span>${user.username}</span>
               </a>
               <button id="logoutBtn" class="px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-red-500 font-medium transition-colors">
@@ -230,7 +374,7 @@ const basePath = '/xuanchen_content';
             mobileAuthButtons.innerHTML = `
               <div class="space-y-2">
                 <a href="${basePath}/profile" class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                  <img id="mobileHeaderAvatar" src="/avatars/default.svg" alt="${user.username}" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none'" />
+                  <img id="mobileHeaderAvatar" src="${basePath}/avatars/default.svg" alt="${user.username}" class="w-8 h-8 rounded-full object-cover" onerror="this.style.display='none'" />
                   <span>${user.username}</span>
                 </a>
                 <a href="${basePath}/admin" class="block w-full px-4 py-2 text-center text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
@@ -254,8 +398,11 @@ const basePath = '/xuanchen_content';
               .catch(() => {});
           }
           
-          const handleLogout = () => {
+          const handleLogout = async () => {
             sessionStorage.removeItem('user');
+            try {
+              await fetch(`${basePath}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+            } catch (e) {}
             window.location.href = basePath + '/login';
           };
           
@@ -278,9 +425,63 @@ const basePath = '/xuanchen_content';
             <a href="${basePath}/register" class="block w-full px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg">
               注册
             </a>
-          </div>
-          `;
+           </div>
+           `;
       }
+      
+      // Scroll to top button
+      const scrollBtn = document.getElementById('scrollToTop');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          scrollBtn?.classList.remove('opacity-0', 'invisible');
+          scrollBtn?.classList.add('opacity-100', 'visible');
+        } else {
+          scrollBtn?.classList.add('opacity-0', 'invisible');
+          scrollBtn?.classList.remove('opacity-100', 'visible');
+        }
+      });
+      scrollBtn?.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      
+      // Page loading on navigation
+      document.querySelectorAll('a[href]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && (href.startsWith('/') || href.startsWith('http')) && !href.startsWith('javascript')) {
+          link.addEventListener('click', (e) => {
+            const loader = document.getElementById('pageLoader');
+            if (loader && !e.ctrlKey && !e.metaKey) {
+              loader.classList.remove('opacity-0', 'pointer-events-none');
+              loader.classList.add('opacity-100');
+            }
+          });
+        }
+      });
+      
+      // Hide loader on page load
+      window.showToast = function(message, type) {
+        type = type || 'success';
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-message');
+        if (!toast || !toastMsg) return;
+        
+        toastMsg.textContent = message;
+        toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg transform transition-all duration-300 z-[9999] ' + 
+          (type === 'success' ? 'bg-green-500 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white');
+        
+        setTimeout(() => toast.classList.remove('-translate-y-20', 'opacity-0'), 10);
+        setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 2500);
+      };
+      
+      // Hide loader on page load
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('pageLoader');
+        if (loader) {
+          setTimeout(() => {
+            loader.classList.add('opacity-0', 'pointer-events-none');
+          }, 300);
+        }
+      });
     </script>
   </body>
 </html>

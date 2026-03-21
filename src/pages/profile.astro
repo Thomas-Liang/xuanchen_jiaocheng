@@ -1,133 +1,581 @@
 ---
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import Avatar from '../components/Avatar.astro';
-import { getUserByUsername } from '../lib/auth';
+import Layout from '../layouts/Layout.astro';
+import { getUserByUsername, getUserFavorites } from '../lib/auth';
 
 const username = Astro.cookies.get('username')?.value;
-const isLoggedIn = !!username;
+const basePath = '/xuanchen_content';
 
-if (!isLoggedIn) {
-  return Astro.redirect('/login');
+if (!username) {
+  return Astro.redirect(`${basePath}/login`);
 }
 
 const user = getUserByUsername(username!);
+const favorites = getUserFavorites(username!);
+const userFavoritesCount = favorites.length;
 ---
 
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>个人资料 - 泫晨云栖</title>
-</head>
-<body class="bg-gradient-to-br from-pink-50 via-white to-yellow-50 min-h-screen">
-  <Header />
-  
-  <main class="container mx-auto px-4 py-8 max-w-2xl">
-    <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-pink-100">
-      <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">个人资料</h1>
+<Layout title="个人资料 - 泫晨云栖">
+  <!-- Toast 通知 -->
+  <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg transform -translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <span id="toast-message"></span>
+  </div>
+
+  <!-- 裁剪对话框 -->
+  <div id="cropModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-6 w-[340px]">
+      <h3 class="font-bold text-gray-800 mb-4">裁剪头像</h3>
+      <div id="cropArea" class="bg-gray-100 rounded mb-4 relative overflow-hidden" style="height: 280px;">
+        <img id="cropImg" class="max-w-full max-h-full absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);" />
+        <div id="cropBox" class="absolute border-4 border-pink-500 rounded-full cursor-move" style="pointer-events: auto;"></div>
+      </div>
+      <div class="flex items-center gap-4 mb-4">
+        <span class="text-xs text-gray-400">小</span>
+        <input type="range" id="cropSize" min="50" max="150" value="100" class="w-full accent-pink-500" />
+        <span class="text-xs text-gray-400">大</span>
+      </div>
+      <div class="flex gap-2">
+        <button id="cancelCropBtn" class="flex-1 py-2 bg-gray-200 rounded">取消</button>
+        <button id="confirmCropBtn" class="flex-1 py-2 bg-pink-500 text-white rounded">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8 px-4">
+    <div class="max-w-2xl mx-auto space-y-6">
       
-      <div class="flex flex-col items-center mb-8">
-        <div id="avatar-preview" class="relative group">
-          <Avatar username={username!} avatar={user?.avatar} size="xl" />
-          <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" id="upload-overlay">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
+      <!-- 主卡片 -->
+      <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/60 dark:border-slate-700/60 overflow-hidden">
+        <!-- 头像区域 -->
+        <div class="relative h-32 bg-gradient-to-r from-pink-400 via-rose-300 to-violet-400">
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2">
+            <label for="avatar-input" class="relative group cursor-pointer block">
+              <img 
+                id="avatar-display"
+                src={user?.avatar ? `${basePath}${user.avatar}` : `${basePath}/avatars/default.svg`}
+                alt="头像"
+                class="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-xl transition-transform group-hover:scale-105"
+              />
+              <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+            </label>
+            <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" />
           </div>
         </div>
-        <p class="text-gray-500 text-sm mt-4">点击头像上传新图片</p>
-        <input type="file" id="avatar-input" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" />
+        
+        <!-- 用户信息 -->
+        <div class="pt-16 pb-6 px-6 text-center">
+          <input type="hidden" id="current-username" value={username} />
+          <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200">{username}</h1>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            {user?.email || '未绑定邮箱'}
+          </p>
+          <div class="flex justify-center gap-2 mt-4">
+            <button id="delete-avatar-btn" class="px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors">
+              删除头像
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div id="upload-message" class="hidden text-center mb-4 p-3 rounded-lg"></div>
-
-      <div class="space-y-6">
-        <div>
-          <label class="block text-gray-700 font-medium mb-2">用户名</label>
-          <div class="bg-pink-50 rounded-xl px-4 py-3 text-gray-800">{username}</div>
+      <!-- 数据统计 - 可折叠 -->
+      <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-100/50 dark:border-slate-700/50 overflow-hidden">
+        <button id="toggle-stats" class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+          <span class="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xs">📊</span>
+            数据统计
+          </span>
+          <svg id="stats-arrow" class="w-5 h-5 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        
+        <div id="stats-content" class="hidden px-5 pb-5">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-pink-100/50 dark:border-pink-900/30">
+              <div class="text-2xl mb-1">📝</div>
+              <div class="text-2xl font-bold text-pink-600">-</div>
+              <div class="text-xs text-slate-500">文章</div>
+            </div>
+            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-amber-100/50 dark:border-amber-900/30">
+              <div class="text-2xl mb-1">❤️</div>
+              <div class="text-2xl font-bold text-amber-600">{userFavoritesCount}</div>
+              <div class="text-xs text-slate-500">收藏</div>
+            </div>
+            <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-emerald-100/50 dark:border-emerald-900/30">
+              <div class="text-2xl mb-1">💬</div>
+              <div class="text-2xl font-bold text-emerald-600">-</div>
+              <div class="text-xs text-slate-500">评论</div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div>
-          <label class="block text-gray-700 font-medium mb-2">邮箱</label>
-          <div class="bg-pink-50 rounded-xl px-4 py-3 text-gray-800">{user?.email || '未设置'}</div>
-        </div>
-
-        <div class="pt-4 border-t border-pink-100">
-          <button 
-            id="delete-avatar-btn"
-            class="w-full py-3 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl font-medium transition-colors"
-          >
-            删除头像
-          </button>
+      <!-- 设置 - 可折叠 -->
+      <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-100/50 dark:border-slate-700/50 overflow-hidden">
+        <button id="toggle-settings" class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+          <span class="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center text-white text-xs">⚙️</span>
+            账户设置
+          </span>
+          <svg id="settings-arrow" class="w-5 h-5 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        
+        <div id="settings-content" class="hidden px-5 pb-5">
+          <div class="flex gap-1 border-b border-slate-200/50 dark:border-slate-700/50 mb-4">
+            <button data-tab="username" class="tab-btn px-4 py-2.5 text-sm font-medium text-pink-600 dark:text-pink-400 border-b-2 border-pink-500 bg-pink-50/50 dark:bg-pink-900/20 rounded-t-lg">👤 用户名</button>
+            <button data-tab="email" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">✉️ 邮箱</button>
+            <button data-tab="password" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">🔐 密码</button>
+          </div>
+          
+          <!-- 用户名 -->
+          <div id="tab-username" class="tab-content">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50/80 to-rose-50/50 dark:from-slate-800/60 dark:to-slate-800/40 rounded-2xl border border-pink-100/40 dark:border-pink-900/30">
+              <div class="flex items-center gap-4">
+                <img id="avatar-username" src={user?.avatar ? `${basePath}${user.avatar}` : `${basePath}/avatars/default.svg`} alt="头像" class="w-12 h-12 rounded-xl object-cover shadow" />
+                <div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">用户名</div>
+                  <div id="username-display" class="font-semibold text-slate-800 dark:text-slate-200">{username}</div>
+                </div>
+              </div>
+              <button id="edit-username-btn" class="px-4 py-2 bg-pink-500 text-white rounded-lg text-sm font-medium hover:bg-pink-600 transition-colors shadow-md">修改</button>
+            </div>
+            <div id="username-edit" class="hidden mt-4 p-4 bg-pink-50/80 dark:bg-slate-800/60 rounded-xl border-2 border-pink-200/50 dark:border-pink-800/50">
+              <input type="text" id="new-username-input" placeholder="新用户名" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-pink-200 dark:border-pink-800 rounded-lg focus:ring-2 focus:ring-pink-400 outline-none text-slate-800 dark:text-slate-200 mb-3" />
+              <div class="flex gap-2">
+                <button id="save-username-btn" class="px-6 py-2.5 bg-pink-500 text-white rounded-lg font-medium hover:bg-pink-600 transition-colors">保存</button>
+                <button id="cancel-username-btn" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 邮箱 -->
+          <div id="tab-email" class="tab-content hidden">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50/80 to-orange-50/50 dark:from-slate-800/60 dark:to-slate-800/40 rounded-2xl border border-amber-100/40 dark:border-amber-900/30">
+              <div class="flex items-center gap-4">
+                <img id="avatar-email" src={user?.avatar ? `${basePath}${user.avatar}` : `${basePath}/avatars/default.svg`} alt="头像" class="w-12 h-12 rounded-xl object-cover shadow" />
+                <div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">邮箱</div>
+                  <div id="email-display" class="font-semibold text-slate-800 dark:text-slate-200">{user?.email || '未绑定'}</div>
+                </div>
+              </div>
+              <button id="bind-email-btn" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors shadow-md">{user?.email ? '修改' : '绑定'}</button>
+            </div>
+            <div id="email-edit" class="hidden mt-4 p-4 bg-amber-50/80 dark:bg-slate-800/60 rounded-xl border-2 border-amber-200/50 dark:border-amber-800/50">
+              <input type="email" id="new-email-input" placeholder="邮箱地址" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-amber-200 dark:border-amber-800 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-slate-800 dark:text-slate-200 mb-3" />
+              <div class="flex gap-2">
+                <button id="save-email-btn" class="px-6 py-2.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">保存</button>
+                <button id="cancel-email-btn" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 密码 -->
+          <div id="tab-password" class="tab-content hidden">
+            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50/80 to-teal-50/50 dark:from-slate-800/60 dark:to-slate-800/40 rounded-2xl border border-emerald-100/40 dark:border-emerald-900/30">
+              <div class="flex items-center gap-4">
+                <img id="avatar-password" src={user?.avatar ? `${basePath}${user.avatar}` : `${basePath}/avatars/default.svg`} alt="头像" class="w-12 h-12 rounded-xl object-cover shadow" />
+                <div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">密码</div>
+                  <div class="font-semibold text-slate-800 dark:text-slate-200 tracking-wider">••••••••</div>
+                </div>
+              </div>
+              <button id="change-pwd-btn" class="px-4 py-2 bg-emerald-500 text-white rounded-lg text-sm font-medium hover:bg-emerald-600 transition-colors shadow-md">修改</button>
+            </div>
+            <div id="pwd-edit" class="hidden mt-4 p-4 bg-emerald-50/80 dark:bg-slate-800/60 rounded-xl border-2 border-emerald-200/50 dark:border-emerald-800/50 space-y-3">
+              <input type="password" id="old-pwd-input" placeholder="当前密码" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-emerald-200 dark:border-emerald-800 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none text-slate-800 dark:text-slate-200" />
+              <input type="password" id="new-pwd-input" placeholder="新密码（至少6位）" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-emerald-200 dark:border-emerald-800 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none text-slate-800 dark:text-slate-200" />
+              <input type="password" id="confirm-pwd-input" placeholder="确认新密码" class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-emerald-200 dark:border-emerald-800 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none text-slate-800 dark:text-slate-200" />
+              <div class="flex gap-2 pt-2">
+                <button id="save-pwd-btn" class="px-6 py-2.5 bg-emerald-500 text-white rounded-lg font-medium hover:bg-emerald-600 transition-colors">保存</button>
+                <button id="cancel-pwd-btn" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <Footer />
+  <script define:vars={{ basePath }}>
+    const username = document.getElementById('current-username')?.value || '';
 
-  <script>
-    const avatarPreview = document.getElementById('avatar-preview');
-    const avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
-    const uploadOverlay = document.getElementById('upload-overlay');
-    const uploadMessage = document.getElementById('upload-message');
-    const deleteAvatarBtn = document.getElementById('delete-avatar-btn');
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastMsg) return;
+      
+      toastMsg.textContent = message;
+      toast.className = `fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg transform transition-all duration-300 z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+      }`;
+      
+      setTimeout(() => toast.classList.remove('-translate-y-20', 'opacity-0'), 10);
+      setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 2500);
+    }
 
-    avatarPreview?.addEventListener('click', () => avatarInput?.click());
+    function setLoading(btn, loading) {
+      if (loading) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = '处理中...';
+        btn.classList.add('opacity-70');
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText || btn.textContent;
+        btn.classList.remove('opacity-70');
+      }
+    }
 
-    avatarInput?.addEventListener('change', async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    function updateAllAvatars(src) {
+      document.querySelectorAll('#avatar-display, #avatar-username, #avatar-email, #avatar-password').forEach(img => {
+        img.src = src;
+      });
+    }
+
+    document.getElementById('toggle-stats')?.addEventListener('click', () => {
+      document.getElementById('stats-content')?.classList.toggle('hidden');
+      document.getElementById('stats-arrow')?.classList.toggle('rotate-180');
+    });
+
+    document.getElementById('toggle-settings')?.addEventListener('click', () => {
+      document.getElementById('settings-content')?.classList.toggle('hidden');
+      document.getElementById('settings-arrow')?.classList.toggle('rotate-180');
+    });
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('text-pink-600', 'dark:text-pink-400', 'border-pink-500', 'bg-pink-50/50', 'dark:bg-pink-900/20');
+          b.classList.add('text-slate-500', 'dark:text-slate-400', 'border-transparent');
+        });
+        btn.classList.remove('text-slate-500', 'dark:text-slate-400', 'border-transparent');
+        btn.classList.add('text-pink-600', 'dark:text-pink-400', 'border-pink-500', 'bg-pink-50/50', 'dark:bg-pink-900/20');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(`tab-${tabName}`)?.classList.remove('hidden');
+      });
+    });
+
+    // Avatar crop functionality
+    const avatarInput = document.getElementById('avatar-input');
+    const cropModal = document.getElementById('cropModal');
+    const cropBox = document.getElementById('cropBox');
+    const cropArea = document.getElementById('cropArea');
+    const cropSizeInput = document.getElementById('cropSize');
+    let currentFile = null;
+    let loadedImage = null;
+    let imgDisplayWidth = 0, imgDisplayHeight = 0;
+    let boxX = 0, boxY = 0, boxSize = 100;
+    let dragging = false, startX, startY, startBoxX, startBoxY;
+
+    function updateCropBox() {
+      if (!cropBox) return;
+      cropBox.style.left = boxX + 'px';
+      cropBox.style.top = boxY + 'px';
+      cropBox.style.width = boxSize + 'px';
+      cropBox.style.height = boxSize + 'px';
+    }
+
+    avatarInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
       if (!file) return;
+      currentFile = file;
+      
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        cropImg.src = evt.target.result;
+        cropImg.onload = () => {
+          loadedImage = new Image();
+          loadedImage.src = evt.target.result;
+          
+          imgDisplayWidth = cropImg.offsetWidth;
+          imgDisplayHeight = cropImg.offsetHeight;
+          
+          boxSize = Math.min(imgDisplayWidth, imgDisplayHeight) * 0.5;
+          boxX = (imgDisplayWidth - boxSize) / 2;
+          boxY = (imgDisplayHeight - boxSize) / 2;
+          cropSizeInput.value = Math.round(boxSize);
+          updateCropBox();
+          cropModal.classList.remove('hidden');
+        };
+      };
+      reader.readAsDataURL(file);
+    });
 
-      const formData = new FormData();
-      formData.append('avatar', file);
+    cropBox?.addEventListener('mousedown', (e) => {
+      dragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startBoxX = boxX;
+      startBoxY = boxY;
+      e.preventDefault();
+    });
 
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      boxX = Math.max(0, Math.min(imgDisplayWidth - boxSize, startBoxX + dx));
+      boxY = Math.max(0, Math.min(imgDisplayHeight - boxSize, startBoxY + dy));
+      updateCropBox();
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
+
+    cropSizeInput?.addEventListener('input', (e) => {
+      const newSize = parseInt(e.target.value);
+      const cx = boxX + boxSize / 2;
+      const cy = boxY + boxSize / 2;
+      boxSize = newSize;
+      boxX = Math.max(0, Math.min(imgDisplayWidth - boxSize, cx - boxSize / 2));
+      boxY = Math.max(0, Math.min(imgDisplayHeight - boxSize, cy - boxSize / 2));
+      updateCropBox();
+    });
+
+    document.getElementById('cancelCropBtn')?.addEventListener('click', () => {
+      cropModal.classList.add('hidden');
+      if (avatarInput) avatarInput.value = '';
+      currentFile = null;
+    });
+
+    document.getElementById('confirmCropBtn')?.addEventListener('click', async () => {
+      if (!currentFile || !loadedImage) return;
+      
+      const btn = document.getElementById('confirmCropBtn');
+      btn.disabled = true;
+      btn.textContent = '上传中...';
+      
       try {
-        const res = await fetch('/api/avatar/upload', {
+        await new Promise(resolve => { if (loadedImage.complete) resolve(); else loadedImage.onload = resolve; });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        
+        const scale = loadedImage.naturalWidth / imgDisplayWidth;
+        const srcX = boxX * scale;
+        const srcY = boxY * scale;
+        const srcSize = boxSize * scale;
+        
+        ctx.drawImage(loadedImage, srcX, srcY, srcSize, srcSize, 0, 0, 200, 200);
+        
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.9));
+        if (!blob) throw new Error('裁剪失败');
+        
+        const formData = new FormData();
+        formData.append('avatar', blob, 'avatar.webp');
+        formData.append('username', username);
+        
+        const res = await fetch(`${basePath}/api/avatar/upload`, {
           method: 'POST',
           body: formData
         });
-
+        
         const data = await res.json();
-
+        cropModal.classList.add('hidden');
+        if (avatarInput) avatarInput.value = '';
+        
         if (data.success) {
-          showMessage('上传成功！', 'success');
-          setTimeout(() => location.reload(), 1000);
+          updateAllAvatars(`${basePath}${data.avatar}?t=${Date.now()}`);
+          showToast('头像上传成功！');
         } else {
-          showMessage(data.error || '上传失败', 'error');
+          showToast(data.error || '上传失败', 'error');
         }
-      } catch {
-        showMessage('上传失败，请重试', 'error');
+      } catch (err) {
+        console.error(err);
+        showToast('上传失败', 'error');
       }
+      
+      btn.disabled = false;
+      btn.textContent = '确认';
+      currentFile = null;
     });
 
-    deleteAvatarBtn?.addEventListener('click', async () => {
+    document.getElementById('delete-avatar-btn')?.addEventListener('click', async () => {
       if (!confirm('确定要删除头像吗？')) return;
-
-      try {
-        const res = await fetch('/api/avatar/upload', { method: 'DELETE' });
-        const data = await res.json();
-
-        if (data.success) {
-          showMessage('头像已删除', 'success');
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showMessage(data.error || '删除失败', 'error');
-        }
-      } catch {
-        showMessage('删除失败，请重试', 'error');
+      const btn = document.getElementById('delete-avatar-btn');
+      setLoading(btn, true);
+      
+      const res = await fetch(`${basePath}/api/avatar/upload`, {
+        method: 'DELETE',
+        body: new URLSearchParams({ username })
+      });
+      
+      const data = await res.json();
+      setLoading(btn, false);
+      
+      if (data.success) {
+        updateAllAvatars(`${basePath}/avatars/default.svg`);
+        showToast('头像已删除');
+      } else {
+        showToast(data.error || '删除失败', 'error');
       }
     });
 
-    function showMessage(msg: string, type: 'success' | 'error') {
-      if (!uploadMessage) return;
-      uploadMessage.textContent = msg;
-      uploadMessage.className = `text-center mb-4 p-3 rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
-      uploadMessage.classList.remove('hidden');
-    }
+    document.getElementById('edit-username-btn')?.addEventListener('click', () => {
+      document.getElementById('username-display')?.classList.add('hidden');
+      document.getElementById('username-edit')?.classList.remove('hidden');
+      document.getElementById('new-username-input')?.focus();
+    });
+
+    document.getElementById('cancel-username-btn')?.addEventListener('click', () => {
+      document.getElementById('username-display')?.classList.remove('hidden');
+      document.getElementById('username-edit')?.classList.add('hidden');
+    });
+
+    document.getElementById('save-username-btn')?.addEventListener('click', async () => {
+      const newUsername = document.getElementById('new-username-input')?.value?.trim();
+      if (!newUsername) { showToast('请输入用户名', 'error'); return; }
+
+      const btn = document.getElementById('save-username-btn');
+      setLoading(btn, true);
+      
+      const res = await fetch(`${basePath}/api/user/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, newUsername, field: 'username' })
+      });
+      
+      const data = await res.json();
+      setLoading(btn, false);
+
+      if (data.success) {
+        showToast('用户名已更新，请重新登录');
+        sessionStorage.clear();
+        setTimeout(() => window.location.href = `${basePath}/login`, 1500);
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    });
+
+    document.getElementById('bind-email-btn')?.addEventListener('click', () => {
+      document.getElementById('email-display')?.classList.add('hidden');
+      document.getElementById('email-edit')?.classList.remove('hidden');
+      document.getElementById('new-email-input')?.focus();
+    });
+
+    document.getElementById('cancel-email-btn')?.addEventListener('click', () => {
+      document.getElementById('email-display')?.classList.remove('hidden');
+      document.getElementById('email-edit')?.classList.add('hidden');
+    });
+
+    document.getElementById('save-email-btn')?.addEventListener('click', async () => {
+      const newEmail = document.getElementById('new-email-input')?.value?.trim();
+      if (!newEmail) { showToast('请输入邮箱', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showToast('请输入有效的邮箱地址', 'error'); return; }
+
+      const btn = document.getElementById('save-email-btn');
+      setLoading(btn, true);
+      
+      const res = await fetch(`${basePath}/api/user/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, newEmail, field: 'email' })
+      });
+      
+      const data = await res.json();
+      setLoading(btn, false);
+
+      if (data.success) {
+        document.getElementById('email-display').textContent = newEmail;
+        document.getElementById('email-display')?.classList.remove('hidden');
+        document.getElementById('email-edit')?.classList.add('hidden');
+        showToast('邮箱已更新');
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    });
+
+    document.getElementById('change-pwd-btn')?.addEventListener('click', () => {
+      document.getElementById('pwd-edit')?.classList.remove('hidden');
+      document.getElementById('old-pwd-input')?.focus();
+    });
+
+    document.getElementById('cancel-pwd-btn')?.addEventListener('click', () => {
+      document.getElementById('pwd-edit')?.classList.add('hidden');
+      document.getElementById('old-pwd-input').value = '';
+      document.getElementById('new-pwd-input').value = '';
+      document.getElementById('confirm-pwd-input').value = '';
+    });
+
+    document.getElementById('save-pwd-btn')?.addEventListener('click', async () => {
+      const oldPwd = document.getElementById('old-pwd-input')?.value;
+      const newPwd = document.getElementById('new-pwd-input')?.value;
+      const confirmPwd = document.getElementById('confirm-pwd-input')?.value;
+
+      if (!oldPwd || !newPwd) { showToast('请填写密码', 'error'); return; }
+      if (newPwd.length < 6) { showToast('新密码至少6位', 'error'); return; }
+      if (newPwd !== confirmPwd) { showToast('两次密码不一致', 'error'); return; }
+
+      const btn = document.getElementById('save-pwd-btn');
+      setLoading(btn, true);
+      
+      const res = await fetch(`${basePath}/api/user/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, oldPwd, newPwd, field: 'password' })
+      });
+      
+      const data = await res.json();
+      setLoading(btn, false);
+
+      if (data.success) {
+        showToast('密码已更新，请重新登录');
+        sessionStorage.clear();
+        setTimeout(() => window.location.href = `${basePath}/login`, 1500);
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    });
+
+    document.getElementById('new-username-input')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('save-username-btn')?.click();
+    });
+    document.getElementById('new-email-input')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('save-email-btn')?.click();
+    });
+    document.getElementById('confirm-pwd-input')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') document.getElementById('save-pwd-btn')?.click();
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+      #cropSize {
+        -webkit-appearance: none;
+        height: 6px;
+        background: linear-gradient(to right, #fecdd3, #f472b6);
+        border-radius: 10px;
+        outline: none;
+      }
+      #cropSize::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border: 3px solid #ec4899;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(236, 72, 153, 0.4);
+        transition: transform 0.2s;
+      }
+      #cropSize::-webkit-slider-thumb:hover { transform: scale(1.2); }
+      #cropSize::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: white;
+        border: 3px solid #ec4899;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(236, 72, 153, 0.4);
+      }
+    `;
+    document.head.appendChild(style);
   </script>
-</body>
-</html>
+</Layout>

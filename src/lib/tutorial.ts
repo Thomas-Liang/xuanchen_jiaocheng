@@ -4,6 +4,7 @@ import matter from 'gray-matter';
 import { marked } from 'marked';
 import type { Tutorial, TutorialFrontmatter } from './types';
 import type { APIRoute } from 'astro';
+import { getPinnedTutorials } from './auth';
 
 // Configure marked options
 marked.setOptions({
@@ -56,9 +57,14 @@ export function getAllTutorials(): Tutorial[] {
 
 export function getPublishedTutorials(): Tutorial[] {
   const all = getAllTutorials();
+  const pinnedSlugs = getPinnedTutorials();
+  
   return all
     .filter(t => !t.isDraft)
+    .map(t => ({ ...t, isPinned: pinnedSlugs.includes(t.slug) }))
     .sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
       const dateA = a.lastModified || a.publishDate;
       const dateB = b.lastModified || b.publishDate;
       return new Date(dateB).getTime() - new Date(dateA).getTime();

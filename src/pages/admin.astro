@@ -2,90 +2,1040 @@
 export const prerender = false;
 
 import Layout from '../layouts/Layout.astro';
-import { getAllTutorials } from '../lib/tutorial';
+import { getAllTutorials, getPublishedTutorials } from '../lib/tutorial';
+import { getAllPageviews, getAllProjects, getAllWorkflows, getAllProducts, getPinnedTutorials, isTutorialPinned } from '../lib/auth';
 
-let tutorials = getAllTutorials();
-tutorials = tutorials.sort((a, b) => {
-  const dateA = a.lastModified || a.publishDate;
-  const dateB = b.lastModified || b.publishDate;
-  return new Date(dateB).getTime() - new Date(dateA).getTime();
-});
+const username = Astro.cookies.get('username')?.value;
 const basePath = '/xuanchen_content';
+
+if (!username) {
+  return Astro.redirect(`${basePath}/login`);
+}
+
+const pinnedSlugs = getPinnedTutorials();
+let tutorials = getAllTutorials();
+tutorials = tutorials
+  .map(t => ({ ...t, isPinned: pinnedSlugs.includes(t.slug) }))
+  .sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    const dateA = a.lastModified || a.publishDate;
+    const dateB = b.lastModified || b.publishDate;
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
+
+const pageviews = getAllPageviews();
+const pageviewMap = new Map(pageviews.map(p => [p.slug, p.count]));
+
+const projects = getAllProjects();
+const workflows = getAllWorkflows();
+const products = getAllProducts();
 ---
 
 <Layout title="管理后台 - 泫晨云栖">
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-4 right-4 px-6 py-3 rounded-xl shadow-lg transform translate-x-full opacity-0 transition-all duration-300 z-50">
+    <span id="toast-message"></span>
+  </div>
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="flex items-center justify-between mb-8">
       <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-200">管理后台</h1>
-      <a href={`${basePath}/tutorials/new`} class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-        新建教程
-      </a>
     </div>
     
-    {tutorials.length > 0 ? (
-      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-        <div class="divide-y divide-slate-200 dark:divide-slate-700">
-          {tutorials.map(tutorial => (
-            <div class="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-              {tutorial.coverImage && (
-                <div class="flex-shrink-0 w-full sm:w-24 h-32 sm:h-16 overflow-hidden rounded-lg">
-                  <img src={tutorial.coverImage} alt="" class="w-full h-full object-cover" />
-                </div>
-              )}
-              <div class="flex-1 min-w-0 w-full">
-                <h3 class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
-                  {tutorial.title}
-                </h3>
-                <p class="text-sm text-slate-500 truncate hidden sm:block">{tutorial.description}</p>
-                <div class="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs text-slate-400">
-                  <span>{tutorial.author}</span>
-                  <span class="hidden sm:inline">•</span>
-                  <span>{tutorial.lastModified || tutorial.publishDate}</span>
-                  <span class="hidden sm:inline">•</span>
-                  <span>{tutorial.readingTime} min</span>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
-                <a href={`${basePath}/tutorials/${tutorial.slug}/edit`} class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
-                  编辑
-                </a>
-                <button 
-                  class="delete-btn px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                  data-slug={tutorial.slug}
-                >
-                  删除
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ) : (
-      <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-        <p class="text-slate-500 mb-4">暂无教程</p>
-        <a href={`${basePath}/tutorials/new`} class="text-blue-600 hover:underline">
-          创建第一个教程
+    <!-- Tab Navigation -->
+    <div class="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
+      <button data-tab="tutorials" class="tab-btn px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 rounded-t-lg transition-colors">
+        📚 教程管理
+      </button>
+      <button data-tab="projects" class="tab-btn px-6 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">
+        📦 开源项目
+      </button>
+      <button data-tab="workflows" class="tab-btn px-6 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">
+        ⚡ 工作流
+      </button>
+      <button data-tab="products" class="tab-btn px-6 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">
+        🎁 精选产品
+      </button>
+      <button data-tab="stats" class="tab-btn px-6 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">
+        📊 站点统计
+      </button>
+      <button data-tab="smtp" class="tab-btn px-6 py-3 text-sm font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 dark:hover:text-slate-300 rounded-t-lg transition-colors">
+        📧 邮件设置
+      </button>
+    </div>
+    
+    <!-- Tab Content Container -->
+    <div class="tab-contents">
+      <!-- Tutorials Tab -->
+      <div id="tab-tutorials" class="tab-content hidden">
+      <div class="flex justify-end mb-4">
+        <a href={`${basePath}/tutorials/new`} class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+          + 新建教程
         </a>
       </div>
-    )}
+      
+      {tutorials.length > 0 ? (
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="divide-y divide-slate-200 dark:divide-slate-700">
+            {tutorials.map(tutorial => (
+              <div class="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                {tutorial.coverImage && (
+                  <div class="flex-shrink-0 w-full sm:w-24 h-32 sm:h-16 overflow-hidden rounded-lg">
+                    <img src={tutorial.coverImage} alt="" class="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div class="flex-1 min-w-0 w-full">
+                  <h3 class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {tutorial.title}
+                  </h3>
+                  <p class="text-sm text-slate-500 truncate hidden sm:block">{tutorial.description}</p>
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs text-slate-400">
+                    <span>{tutorial.author}</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span>{tutorial.lastModified || tutorial.publishDate}</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span>{tutorial.readingTime} min</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span class="view-count text-blue-600 dark:text-blue-400 font-medium" data-slug={tutorial.slug}>👁 {pageviewMap.get(tutorial.slug) || 0}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+                  <button 
+                    class="pin-btn px-3 py-2 text-sm transition-colors rounded-lg"
+                    data-slug={tutorial.slug}
+                    data-pinned={tutorial.isPinned ? 'true' : 'false'}
+                    title={tutorial.isPinned ? '取消置顶' : '置顶'}
+                  >
+                    {tutorial.isPinned ? '📌' : '📍'}
+                  </button>
+                  <button 
+                    class="reset-views-btn px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                    data-slug={tutorial.slug}
+                    title="重置阅读量"
+                  >
+                    🔄
+                  </button>
+                  <a href={`${basePath}/tutorials/${tutorial.slug}/edit`} class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                    编辑
+                  </a>
+                  <button 
+                    class="delete-btn px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    data-slug={tutorial.slug}
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <p class="text-slate-500 mb-4">暂无教程</p>
+          <a href={`${basePath}/tutorials/new`} class="text-blue-600 hover:underline">
+            创建第一个教程
+          </a>
+        </div>
+      )}
+    </div>
+
+    <!-- Projects Tab -->
+    <div id="tab-projects" class="tab-content hidden">
+      <div class="flex justify-end mb-4">
+        <button id="add-project-btn" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+          + 添加项目
+        </button>
+      </div>
+      
+      {projects.length > 0 ? (
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="divide-y divide-slate-200 dark:divide-slate-700">
+            {projects.map(project => (
+              <div class="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <div class="flex items-center gap-4 flex-1 min-w-0 overflow-hidden">
+                <span class="text-3xl flex-shrink-0">{project.icon || '📦'}</span>
+                  <div class="min-w-0">
+                    <h3 class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
+                      {project.name}
+                    </h3>
+                    <p class="text-sm text-slate-500 truncate hidden sm:block">{project.description}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+                  <a 
+                    href={`${basePath}/projects/${project.id}/edit`}
+                    class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                  >
+                    编辑
+                  </a>
+                  <button 
+                    class="delete-project-btn px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    data-id={project.id}
+                    data-name={project.name}
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <p class="text-slate-500 mb-4">暂无项目</p>
+        </div>
+      )}
+    </div>
+
+    <!-- Workflows Tab -->
+    <div id="tab-workflows" class="tab-content hidden">
+      <div class="flex justify-end mb-4">
+        <button id="add-workflow-btn" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+          + 添加工作流
+        </button>
+      </div>
+      
+      {workflows.length > 0 ? (
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="divide-y divide-slate-200 dark:divide-slate-700">
+            {workflows.map(workflow => (
+              <div class="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <span class="text-3xl">{workflow.icon || '⚡'}</span>
+                  <div class="min-w-0">
+                    <h3 class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">
+                      {workflow.name}
+                    </h3>
+                    <p class="text-sm text-slate-500 truncate hidden sm:block">{workflow.description}</p>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      {(workflow.tags || '').split(',').map((tag: string) => (
+                        <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded text-xs">
+                          {tag.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+                  <a 
+                    href={`${basePath}/workflows/${workflow.id}/edit`}
+                    class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                  >
+                    编辑
+                  </a>
+                  <button 
+                    class="delete-workflow-btn px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    data-id={workflow.id}
+                    data-name={workflow.name}
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <p class="text-slate-500 mb-4">暂无工作流</p>
+        </div>
+      )}
+    </div>
   </div>
-  
+
+  <!-- Project Modal -->
+  <div id="project-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h2 id="project-modal-title" class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">添加项目</h2>
+      <form id="project-form" class="space-y-4">
+        <input type="hidden" id="project-id" name="id" value="" />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">图标 (emoji)</label>
+          <input type="text" id="project-icon" name="icon" placeholder="📦" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">项目名称</label>
+          <input type="text" id="project-name" name="name" required placeholder="项目名称" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述</label>
+          <textarea id="project-description" name="description" rows="2" placeholder="项目描述" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">项目链接</label>
+          <input type="url" id="project-url" name="url" placeholder="https://github.com/..." class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="cancel-project" class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Workflow Modal -->
+  <div id="workflow-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h2 id="workflow-modal-title" class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">添加工作流</h2>
+      <form id="workflow-form" class="space-y-4">
+        <input type="hidden" id="workflow-id" name="id" value="" />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">图标 (emoji)</label>
+          <input type="text" id="workflow-icon" name="icon" placeholder="⚡" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">名称</label>
+          <input type="text" id="workflow-name" name="name" required placeholder="工作流名称" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述</label>
+          <textarea id="workflow-description" name="description" rows="2" placeholder="工作流描述" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">标签 (逗号分隔)</label>
+          <input type="text" id="workflow-tags" name="tags" placeholder="AI, 自动化" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">链接地址</label>
+          <input type="url" id="workflow-url" name="url" placeholder="https://runninghub.example.com/workflow/..." class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="cancel-workflow" class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">保存</button>
+        </div>
+      </form>
+      </div>
+    </div>
+
+      <!-- Products Tab -->
+    <div id="tab-products" class="tab-content hidden">
+      <div class="flex justify-end mb-4">
+        <button id="add-product-btn" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+          + 添加产品
+        </button>
+      </div>
+      
+      {products.length > 0 ? (
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="divide-y divide-slate-200 dark:divide-slate-700">
+            {products.map(product => (
+              <div class="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  {product.image && (
+                    <img src={product.image} alt="" class="w-16 h-12 object-cover rounded-lg flex-shrink-0" />
+                  )}
+                  <span class="text-2xl">{product.icon || '📦'}</span>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 truncate">{product.name}</h3>
+                    <p class="text-sm text-slate-500 truncate hidden sm:block">{product.description}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+                  <a href={`${basePath}/products/${product.id}/edit`} class="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">编辑</a>
+                  <button class="delete-product-btn px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" data-id={product.id} data-name={product.name}>删除</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="text-center py-12 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <p class="text-slate-500 mb-4">暂无产品</p>
+        </div>
+      )}
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="tab-stats" class="tab-content hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-6 text-white shadow-lg">
+          <div class="text-sm opacity-80 mb-1">总访问量</div>
+          <div id="stat-total" class="text-4xl font-bold">-</div>
+          <div class="text-sm opacity-60 mt-2">次</div>
+        </div>
+        <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg">
+          <div class="text-sm opacity-80 mb-1">页面数</div>
+          <div id="stat-pages" class="text-4xl font-bold">-</div>
+          <div class="text-sm opacity-60 mt-2">个</div>
+        </div>
+        <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-6 text-white shadow-lg">
+          <div class="text-sm opacity-80 mb-1">平均访问</div>
+          <div id="stat-avg" class="text-4xl font-bold">-</div>
+          <div class="text-sm opacity-60 mt-2">次/页</div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="font-semibold text-slate-800 dark:text-slate-200">访问排行</h3>
+        </div>
+        <div id="stats-list" class="divide-y divide-slate-200 dark:divide-slate-700">
+          <div class="p-6 text-center text-slate-500">加载中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMTP Settings Tab -->
+    <div id="tab-smtp" class="tab-content hidden">
+      <div class="space-y-6">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+          <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center text-white text-sm">📧</span>
+            SMTP 邮件设置
+          </h3>
+          
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <input type="checkbox" id="smtp-enabled" class="w-5 h-5 rounded accent-pink-500" />
+              <label for="smtp-enabled" class="text-slate-700 dark:text-slate-300">启用邮件通知</label>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">SMTP 服务器 *</label>
+                <input type="text" id="smtp-host" placeholder="smtp.gmail.com" 
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">端口 *</label>
+                <input type="text" id="smtp-port" placeholder="587" value="587"
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">邮箱账号 *</label>
+                <input type="email" id="smtp-user" placeholder="your-email@gmail.com"
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">密码/应用专用密码</label>
+                <input type="password" id="smtp-pass" placeholder="留空则不修改"
+                  class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">发件人名称</label>
+              <input type="text" id="smtp-from" placeholder="泫晨云栖"
+                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+          <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm">🌐</span>
+            站点设置
+          </h3>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">站点名称</label>
+              <input type="text" id="site-name" placeholder="泫晨云栖"
+                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">站点 URL</label>
+              <input type="url" id="site-url" placeholder="https://xuanchen.cloud"
+                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-pink-500 outline-none" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex gap-3">
+          <button id="save-smtp-btn" type="button" class="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-violet-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-pink-500/25 transition-all">
+            保存设置
+          </button>
+          <button id="test-smtp-btn" type="button" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+            发送测试邮件
+          </button>
+        </div>
+        
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+          <h4 class="font-medium text-amber-800 dark:text-amber-200 mb-2">💡 使用提示</h4>
+          <ul class="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+            <li>• Gmail 需要开启"应用专用密码"并使用 16 位密码</li>
+            <li>• QQ 邮箱使用授权码而非登录密码</li>
+            <li>• 建议先发送测试邮件确认配置正确</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  <!-- Product Modal -->
+  <div id="product-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h2 id="product-modal-title" class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">添加产品</h2>
+      <form id="product-form" class="space-y-4">
+        <input type="hidden" id="product-id" name="id" value="" />
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">图标 (emoji)</label>
+          <input type="text" id="product-icon" name="icon" placeholder="📦" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">产品名称</label>
+          <input type="text" id="product-name" name="name" required placeholder="产品名称" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">描述</label>
+          <textarea id="product-description" name="description" rows="2" placeholder="产品描述" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">产品链接</label>
+          <input type="url" id="product-url" name="url" placeholder="https://..." class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">案例图片 URL</label>
+          <input type="url" id="product-image" name="image" placeholder="https://... (可选)" class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="cancel-product" class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-500 transition-colors">取消</button>
+          <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+   
   <script>
+    const basePath = '/xuanchen_content';
+    
+    function showToast(message, type) {
+      type = type || 'success';
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      if (!toast || !toastMsg) return;
+      
+      toastMsg.textContent = message;
+      toast.className = `fixed top-4 right-4 px-6 py-3 rounded-xl shadow-lg transform transition-all duration-300 z-50 ${
+        type === 'success' 
+          ? 'bg-green-500 text-white' 
+          : 'bg-red-500 text-white'
+      }`;
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+      }, 10);
+      
+      setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+      }, 2500);
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      console.log('Switching to: ' + tabName);
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('text-blue-600', 'border-blue-500', 'bg-blue-50/50', 'dark:bg-blue-900/20');
+        b.classList.add('text-slate-500', 'border-transparent');
+      });
+      const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+      activeBtn?.classList.remove('text-slate-500', 'border-transparent');
+      activeBtn?.classList.add('text-blue-600', 'border-blue-500', 'bg-blue-50/50', 'dark:bg-blue-900/20');
+      
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById('tab-' + tabName)?.classList.remove('hidden');
+      
+      if (tabName === 'stats') {
+        loadStats();
+      }
+      if (tabName === 'smtp') {
+        loadSmtpConfig();
+      }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        if (tabName) switchTab(tabName);
+      });
+    });
+
+    // Check URL params for initial tab on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab');
+    if (initialTab) {
+      switchTab(initialTab);
+    } else {
+      switchTab('tutorials');
+    }
+
+    // Tutorial delete
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!confirm('确定要删除这个教程吗？')) return;
         
-        const slug = (btn as HTMLElement).dataset.slug;
-        const res = await fetch(`${window.location.origin}/xuanchen_content/api/tutorials/delete?slug=${slug}`, {
+        const slug = btn.dataset.slug;
+        const res = await fetch(basePath + '/api/tutorials/delete?slug=' + slug, {
           method: 'DELETE'
         });
         
         if (res.ok) {
-          window.location.reload();
+          showToast('删除成功！');
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          alert('删除失败');
+          showToast('删除失败', 'error');
         }
       });
+    });
+
+    // Reset views
+    document.querySelectorAll('.reset-views-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('确定要重置这篇教程的阅读量吗？')) return;
+        
+        const slug = btn.dataset.slug;
+        const res = await fetch(basePath + '/api/pageviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, action: 'reset' })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          showToast('阅读量已重置！');
+          const viewCountEl = document.querySelector(`.view-count[data-slug="${slug}"]`);
+          if (viewCountEl) {
+            viewCountEl.textContent = '👁 0';
+          }
+        } else {
+          showToast('重置失败', 'error');
+        }
+      });
+    });
+
+    // Pin tutorial
+    document.querySelectorAll('.pin-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const el = btn;
+        const slug = el.dataset.slug;
+        const isPinned = el.dataset.pinned === 'true';
+        const action = isPinned ? 'unpin' : 'pin';
+        
+        const formData = new FormData();
+        formData.append('slug', slug || '');
+        formData.append('action', action);
+        
+        const res = await fetch(basePath + '/api/tutorials/pin', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+          showToast(isPinned ? '已取消置顶' : '已置顶');
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          showToast('操作失败', 'error');
+        }
+      });
+    });
+
+    // Project Modal
+    const projectModal = document.getElementById('project-modal');
+    const projectForm = document.getElementById('project-form');
+    
+    document.getElementById('add-project-btn')?.addEventListener('click', () => {
+      document.getElementById('project-modal-title').textContent = '添加项目';
+      document.getElementById('project-id').value = '';
+      document.getElementById('project-icon').value = '📦';
+      document.getElementById('project-name').value = '';
+      document.getElementById('project-description').value = '';
+      document.getElementById('project-url').value = '';
+      projectModal?.classList.remove('hidden');
+      projectModal?.classList.add('flex');
+    });
+    
+    document.getElementById('cancel-project')?.addEventListener('click', () => {
+      projectModal?.classList.add('hidden');
+      projectModal?.classList.remove('flex');
+    });
+    
+    projectModal?.addEventListener('click', (e) => {
+      if (e.target === projectModal) {
+        projectModal.classList.add('hidden');
+        projectModal.classList.remove('flex');
+      }
+    });
+    
+    projectForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(projectForm);
+      const id = formData.get('id');
+      const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        url: formData.get('url'),
+        icon: formData.get('icon'),
+        action: id ? 'update' : 'create',
+        id: id || null
+      };
+      
+      const res = await fetch(basePath + '/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if (result.success) {
+        showToast(id ? '项目已更新！' : '项目已添加！');
+        projectModal?.classList.add('hidden');
+        projectModal?.classList.remove('flex');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showToast('操作失败', 'error');
+      }
+    });
+    
+    document.querySelectorAll('.delete-project-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const el = btn;
+        if (!confirm(`确定要删除项目「${el.dataset.name}」吗？`)) return;
+        
+        const res = await fetch(basePath + '/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id: el.dataset.id })
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+          showToast('项目已删除！');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast('删除失败', 'error');
+        }
+      });
+    });
+
+    // Workflow Modal
+    const workflowModal = document.getElementById('workflow-modal');
+    const workflowForm = document.getElementById('workflow-form');
+    
+    document.getElementById('add-workflow-btn')?.addEventListener('click', () => {
+      document.getElementById('workflow-modal-title').textContent = '添加工作流';
+      document.getElementById('workflow-id').value = '';
+      document.getElementById('workflow-icon').value = '⚡';
+      document.getElementById('workflow-name').value = '';
+      document.getElementById('workflow-description').value = '';
+      document.getElementById('workflow-tags').value = '';
+      document.getElementById('workflow-url').value = '';
+      workflowModal?.classList.remove('hidden');
+      workflowModal?.classList.add('flex');
+    });
+    
+    document.getElementById('cancel-workflow')?.addEventListener('click', () => {
+      workflowModal?.classList.add('hidden');
+      workflowModal?.classList.remove('flex');
+    });
+    
+    workflowModal?.addEventListener('click', (e) => {
+      if (e.target === workflowModal) {
+        workflowModal.classList.add('hidden');
+        workflowModal.classList.remove('flex');
+      }
+    });
+    
+    workflowForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(workflowForm);
+      const id = formData.get('id');
+      const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        icon: formData.get('icon'),
+        tags: formData.get('tags'),
+        url: formData.get('url'),
+        action: id ? 'update' : 'create',
+        id: id || null
+      };
+      
+      const res = await fetch(basePath + '/api/workflows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if (result.success) {
+        showToast(id ? '工作流已更新！' : '工作流已添加！');
+        workflowModal?.classList.add('hidden');
+        workflowModal?.classList.remove('flex');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showToast('操作失败', 'error');
+      }
+    });
+    
+    document.querySelectorAll('.delete-workflow-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const el = btn;
+        if (!confirm(`确定要删除工作流「${el.dataset.name}」吗？`)) return;
+        
+        const res = await fetch(basePath + '/api/workflows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id: el.dataset.id })
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+          showToast('工作流已删除！');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast('删除失败', 'error');
+        }
+      });
+    });
+
+    // Product Modal
+    const productModal = document.getElementById('product-modal');
+    const productForm = document.getElementById('product-form');
+    
+    document.getElementById('add-product-btn')?.addEventListener('click', () => {
+      document.getElementById('product-modal-title').textContent = '添加产品';
+      document.getElementById('product-id').value = '';
+      document.getElementById('product-icon').value = '📦';
+      document.getElementById('product-name').value = '';
+      document.getElementById('product-description').value = '';
+      document.getElementById('product-url').value = '';
+      document.getElementById('product-image').value = '';
+      productModal?.classList.remove('hidden');
+      productModal?.classList.add('flex');
+    });
+    
+    document.getElementById('cancel-product')?.addEventListener('click', () => {
+      productModal?.classList.add('hidden');
+      productModal?.classList.remove('flex');
+    });
+    
+    productModal?.addEventListener('click', (e) => {
+      if (e.target === productModal) {
+        productModal.classList.add('hidden');
+        productModal.classList.remove('flex');
+      }
+    });
+    
+    productForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(productForm);
+      const id = formData.get('id');
+      const data = {
+        name: formData.get('name'),
+        description: formData.get('description'),
+        url: formData.get('url'),
+        icon: formData.get('icon'),
+        image: formData.get('image'),
+        action: id ? 'update' : 'create',
+        id: id || null
+      };
+      
+      const res = await fetch(basePath + '/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await res.json();
+      if (result.success) {
+        showToast(id ? '产品已更新！' : '产品已添加！');
+        productModal?.classList.add('hidden');
+        productModal?.classList.remove('flex');
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        showToast('操作失败', 'error');
+      }
+    });
+    
+    document.querySelectorAll('.delete-product-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const el = btn;
+        if (!confirm(`确定要删除产品「${el.dataset.name}」吗？`)) return;
+        
+        const res = await fetch(basePath + '/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id: el.dataset.id })
+        });
+        
+        const result = await res.json();
+        if (result.success) {
+          showToast('产品已删除！');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showToast('删除失败', 'error');
+        }
+      });
+    });
+
+    // Stats tab - load data when tab is shown
+    let statsLoaded = false;
+    
+    function loadStats() {
+      if (statsLoaded) return;
+      statsLoaded = true;
+      console.log('Loading stats...');
+      
+      fetch(basePath + '/api/stats')
+        .then(res => res.json())
+        .then(data => {
+          if (data.totalViews !== undefined) {
+            document.getElementById('stat-total').textContent = data.totalViews.toLocaleString();
+            document.getElementById('stat-pages').textContent = data.pageCount.toLocaleString();
+            document.getElementById('stat-avg').textContent = data.pageCount > 0 ? Math.round(data.totalViews / data.pageCount).toLocaleString() : '0';
+            
+            const listEl = document.getElementById('stats-list');
+            if (listEl && data.topPages && data.topPages.length > 0) {
+              const maxViews = Math.max(...data.topPages.map(function(p) { return p.count; }));
+              listEl.innerHTML = data.topPages.map(function(p, i) {
+                const percentage = maxViews > 0 ? (p.count / maxViews * 100) : 0;
+                return '<div class="p-4 flex items-center gap-4">' +
+                  '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">' + (i + 1) + '</div>' +
+                  '<div class="flex-1 min-w-0">' +
+                    '<div class="font-medium text-slate-800 dark:text-slate-200 truncate">' + p.slug + '</div>' +
+                    '<div class="mt-2 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">' +
+                      '<div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500" style="width: ' + percentage + '%"></div>' +
+                    '</div>' +
+                  '</div>' +
+                  '<div class="text-right flex-shrink-0">' +
+                    '<div class="font-bold text-slate-800 dark:text-slate-200">' + p.count.toLocaleString() + '</div>' +
+                    '<div class="text-xs text-slate-500">次访问</div>' +
+                  '</div>' +
+                '</div>';
+              }).join('');
+            } else if (listEl) {
+              listEl.innerHTML = '<div class="p-6 text-center text-slate-500">暂无数据</div>';
+            }
+            statsLoaded = true;
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load stats:', err);
+          const listEl = document.getElementById('stats-list');
+          if (listEl) listEl.innerHTML = '<div class="p-6 text-center text-red-500">加载失败</div>';
+        });
+    }
+    
+    // SMTP Settings
+    let smtpLoaded = false;
+    
+    function loadSmtpConfig() {
+      if (smtpLoaded) return;
+      smtpLoaded = true;
+      
+      fetch(basePath + '/api/config')
+        .then(res => res.json())
+        .then(data => {
+          const smtp = data.smtp || {};
+          const site = data.site || {};
+          
+          document.getElementById('smtp-enabled').checked = smtp.enabled || false;
+          document.getElementById('smtp-host').value = smtp.host || '';
+          document.getElementById('smtp-port').value = smtp.port || '587';
+          document.getElementById('smtp-user').value = smtp.user || '';
+          document.getElementById('smtp-pass').value = smtp.pass ? '********' : '';
+          document.getElementById('smtp-from').value = smtp.from || '';
+          document.getElementById('site-url').value = site.url || '';
+          document.getElementById('site-name').value = site.name || '';
+          
+          smtpLoaded = true;
+        })
+        .catch(err => console.error('Failed to load config:', err));
+    }
+    
+    document.getElementById('save-smtp-btn')?.addEventListener('click', () => {
+      const btn = document.getElementById('save-smtp-btn');
+      const smtpEnabled = document.getElementById('smtp-enabled')?.checked;
+      const smtpHost = document.getElementById('smtp-host')?.value;
+      const smtpPort = document.getElementById('smtp-port')?.value;
+      const smtpUser = document.getElementById('smtp-user')?.value;
+      const smtpPass = document.getElementById('smtp-pass')?.value;
+      const smtpFrom = document.getElementById('smtp-from')?.value;
+      const siteUrl = document.getElementById('site-url')?.value;
+      const siteName = document.getElementById('site-name')?.value;
+      
+      if (!smtpHost || !smtpUser) {
+        showToast('请填写必填项', 'error');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = '保存中...';
+      
+      const config = {
+        smtp: { enabled: smtpEnabled, host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass === '********' ? undefined : smtpPass, from: smtpFrom },
+        site: { url: siteUrl, name: siteName }
+      };
+      
+      fetch(basePath + '/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('设置已保存！');
+            if (smtpPass !== '********') {
+              document.getElementById('smtp-pass').value = '********';
+            }
+          } else {
+            showToast(data.error || '保存失败', 'error');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('保存失败', 'error');
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = '保存设置';
+        });
+    });
+    
+    document.getElementById('test-smtp-btn')?.addEventListener('click', () => {
+      const email = prompt('请输入测试收件邮箱：');
+      if (!email) return;
+      
+      const btn = document.getElementById('test-smtp-btn');
+      btn.disabled = true;
+      btn.textContent = '发送中...';
+      
+      const testHtml = `
+        <html>
+        <body style="font-family: sans-serif; padding: 20px;">
+          <h2>🎉 测试邮件</h2>
+          <p>这是一封来自泫晨云栖的测试邮件。</p>
+          <p>如果收到这封邮件，说明 SMTP 配置正确！</p>
+          <p>发送时间：${new Date().toLocaleString('zh-CN')}</p>
+        </body>
+        </html>
+      `;
+      
+      fetch(basePath + '/api/config/send-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: email, subject: '泫晨云栖 - 邮件配置测试', html: testHtml })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('测试邮件已发送！');
+          } else {
+            showToast(data.error || '发送失败', 'error');
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('发送失败', 'error');
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = '发送测试邮件';
+        });
     });
   </script>
 </Layout>

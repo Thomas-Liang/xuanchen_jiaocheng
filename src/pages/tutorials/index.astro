@@ -32,8 +32,11 @@ for (let p = 1; p <= totalPages; p++) {
 }
 ---
 
-<Layout title="教程列表 - 泫晨云栖">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<Layout 
+  title={currentTag ? `${currentTag} 教程` : '教程列表'}
+  description={`浏览泫晨云栖的所有技术教程${currentTag ? '，标签：' + currentTag : ''}，学习最新技术知识`}
+>
+  <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-200">教程列表</h1>

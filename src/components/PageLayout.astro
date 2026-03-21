@@ -1,0 +1,72 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  badge?: string;
+  badgeIcon?: string;
+  badgeColor?: 'blue' | 'pink' | 'violet' | 'green' | 'amber' | 'cyan';
+  showDecorativeBg?: boolean;
+}
+
+const { 
+  title, 
+  subtitle, 
+  badge, 
+  badgeIcon,
+  badgeColor = 'blue',
+  showDecorativeBg = true
+} = Astro.props;
+
+const badgeColors = {
+  blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 ring-blue-500/20',
+  pink: 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 ring-pink-500/20',
+  violet: 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 ring-violet-500/20',
+  green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 ring-green-500/20',
+  amber: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 ring-amber-500/20',
+  cyan: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 ring-cyan-500/20',
+};
+---
+
+<div class="min-h-screen relative overflow-hidden">
+  <!-- Decorative Background -->
+  {showDecorativeBg && (
+    <div class="absolute inset-0 -z-10">
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"></div>
+      <!-- Decorative shapes -->
+      <div class="absolute top-20 left-10 w-72 h-72 bg-blue-200/30 dark:bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute top-40 right-20 w-96 h-96 bg-violet-200/20 dark:bg-violet-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-pink-200/20 dark:bg-pink-500/10 rounded-full blur-3xl"></div>
+    </div>
+  )}
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+    
+    <!-- Hero Section -->
+    {(title || badge) && (
+      <div class="text-center mb-16">
+        {badge && (
+          <div class={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold ring-1 ring-inset mb-8 ${badgeColors[badgeColor]}`}>
+            {badgeIcon && <span class="text-base">{badgeIcon}</span>}
+            <span>{badge}</span>
+          </div>
+        )}
+        {title && (
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">
+            <span class="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-900 dark:from-white dark:via-slate-100 dark:to-slate-200 bg-clip-text">
+              {title}
+            </span>
+          </h1>
+        )}
+        {subtitle && (
+          <p class="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            {subtitle}
+          </p>
+        )}
+      </div>
+    )}
+    
+    <!-- Content Slot -->
+    <slot />
+    
+  </div>
+</div>

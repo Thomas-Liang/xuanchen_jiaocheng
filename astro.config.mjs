@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   output: 'server',
+  site: 'http://localhost:4326',
   adapter: node({
     mode: 'standalone',
   }),
@@ -20,9 +21,9 @@ export default defineConfig({
   },
   server: {
     host: true,
-    origin: 'http://localhost:4321',
-    csrf: {
-      checkOrigin: false,
-    },
+    origin: 'http://localhost:4326',
+  },
+  security: {
+    checkOrigin: false,
   },
 });

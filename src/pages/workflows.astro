@@ -1,62 +1,57 @@
 ---
 import Layout from '../layouts/Layout.astro';
-const basePath = '/xuanchen_content';
+import PageLayout from '../components/PageLayout.astro';
+import Card from '../components/Card.astro';
+import { getAllWorkflows } from '../lib/auth';
 
-const workflows = [
-  {
-    name: 'AI 代码生成',
-    description: '使用 AI 自动生成代码，提高开发效率',
-    icon: '🤖',
-    tags: ['AI', '自动化'],
-  },
-  {
-    name: 'CI/CD 流水线',
-    description: '自动化构建、测试和部署流程',
-    icon: '🔄',
-    tags: ['DevOps', '自动化'],
-  },
-  {
-    name: 'API 集成',
-    description: '快速集成第三方 API 服务',
-    icon: '🔗',
-    tags: ['API', '后端'],
-  },
-];
+const basePath = '/xuanchen_content';
+const workflowsData = getAllWorkflows();
 ---
 
-<Layout title="工作流 - 泫晨云栖">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="text-center mb-12">
-      <h1 class="text-3xl font-bold text-slate-800 dark:text-slate-200 mb-4">工作流</h1>
-      <p class="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-        发现并使用高效的工作流程，提升团队协作效率
-      </p>
-    </div>
-    
+<Layout 
+  title="工作流"
+  description="泫晨云栖的工作流模板，帮助你自动化重复性工作，提升开发效率"
+>
+  <PageLayout 
+    badge="⚡ 工作流"
+    badgeColor="amber"
+    subtitle="发现并使用高效的工作流程，提升团队协作效率"
+  >
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {workflows.map(workflow => (
-        <div class="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all">
-          <div class="text-4xl mb-4">{workflow.icon}</div>
+      {workflowsData.map((workflow) => (
+        <Card href={workflow.url} padding="md">
+          <div class="flex items-start justify-between mb-4">
+            <span class="text-4xl">{workflow.icon || '⚡'}</span>
+            {!workflow.url && (
+              <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs">
+                即将上线
+              </span>
+            )}
+          </div>
           <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
             {workflow.name}
           </h2>
-          <p class="text-slate-500 dark:text-slate-400 mb-4">{workflow.description}</p>
+          <p class="text-slate-500 dark:text-slate-400 mb-4 text-sm">{workflow.description}</p>
           <div class="flex flex-wrap gap-2">
-            {workflow.tags.map(tag => (
+            {(workflow.tags || '').split(',').filter((t: string) => t.trim()).map((tag: string) => (
               <span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full text-xs">
-                {tag}
+                {tag.trim()}
               </span>
             ))}
           </div>
-        </div>
+          {workflow.url && (
+            <span class="text-sm text-blue-600 dark:text-blue-400 font-medium mt-4 block">访问工作流 →</span>
+          )}
+        </Card>
       ))}
     </div>
-    
-    <div class="mt-12 p-6 bg-gradient-to-r from-blue-50 to-violet-50 dark:from-blue-900/20 dark:to-violet-900/20 rounded-2xl">
-      <h2 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">Coming Soon</h2>
-      <p class="text-slate-500 dark:text-slate-400">
-        更多工作流模板正在准备中，敬请期待！
-      </p>
-    </div>
-  </div>
+
+    {workflowsData.length === 0 && (
+      <div class="text-center py-16">
+        <div class="text-6xl mb-4">⚡</div>
+        <h2 class="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">工作流即将上线</h2>
+        <p class="text-slate-500 dark:text-slate-400">更多工作流模板正在准备中</p>
+      </div>
+    )}
+  </PageLayout>
 </Layout>
