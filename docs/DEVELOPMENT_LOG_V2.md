@@ -591,6 +591,14 @@ xuanchen_image_bed/product/{产品ID}/{时间戳}.{扩展名}
 - 开发服务器正常工作
 - 生产构建需要配置 `security.checkOrigin: false`
 
+### Vercel 部署说明
+- 当前适配器：`@astrojs/node`（SSR 模式）
+- Vercel 部署需要：
+  - 安装 `@astrojs/vercel` 适配器
+  - 将 SQLite 改为 Vercel Postgres 或 Turso
+  - 将文件上传改为 Vercel Blob
+- 推荐方案：使用 Docker 部署到自己的服务器
+
 ---
 
 ## 文档索引
